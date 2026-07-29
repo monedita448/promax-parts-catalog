@@ -37,6 +37,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_JS = BASE_DIR / "data.js"
 STATUS_JSON = BASE_DIR / "status.json"
 URLS_JSON = BASE_DIR / "scripts" / "product_urls.json"
+DEBUG_DIR = BASE_DIR / "debug"
 
 PRICE_SELECTOR = ".product-info-main .price, .product-info-price .price, [data-price-type='finalPrice'] .price, .price"
 STOCK_SELECTOR = ".availability .value, .stock .value, .availability, .stock"
@@ -136,6 +137,7 @@ def run():
     stock_not_found = []
     failures = []
     stock_unknown = []
+    debug_captured = False
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
@@ -163,6 +165,21 @@ def run():
                     price_changes.append((pid, result[0], result[1]))
             elif new_price is None and not any(f.startswith(pid + ":") for f in failures):
                 failures.append(pid + ": could not find a price on the page")
+
+            # The very first time a price can't be found, save a
+            # screenshot and the raw page HTML so a human can see what
+            # the automated browser actually received (a real product
+            # page, a bot-check wall, a blank page, etc.) instead of
+            # guessing from a one-line error message. Only captured once
+            # per run since all 39 pages tend to fail the same way.
+            if new_price is None and not debug_captured:
+                try:
+                    DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+                    page.screenshot(path=str(DEBUG_DIR / (pid + "-screenshot.png")), full_page=True)
+                    (DEBUG_DIR / (pid + "-page.html")).write_text(page.content(), encoding="utf-8")
+                    debug_captured = True
+                except Exception:
+                    pass
 
             try:
                 in_stock = extract_stock(page)

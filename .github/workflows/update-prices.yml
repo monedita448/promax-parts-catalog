@@ -27,6 +27,15 @@ jobs:
         id: prices
         run: python scripts/update_prices.py
 
+      - name: Upload debug artifacts (only exist if a price check failed)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: price-check-debug
+          path: debug/
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Commit status.json and any price changes
         run: |
           git config user.name "price-bot"
