@@ -5,10 +5,19 @@
   inset: 0;
   background: #1c1c1a;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 999;
   padding: 20px;
+}
+
+.gate-greeting-standalone {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 19px;
+  margin: 0 0 22px;
+  text-align: center;
 }
 
 .gate-card {
@@ -18,17 +27,6 @@
   border-radius: 14px;
   padding: 28px 24px;
   text-align: center;
-}
-
-.gate-greeting {
-  font-size: 13px;
-  color: #6b6a64;
-  margin: 0 0 12px;
-}
-
-.gate-penguin {
-  display: block;
-  margin: 0 auto 12px;
 }
 
 .gate-label {
@@ -72,13 +70,46 @@
   margin: 10px 0 0;
 }
 
+.staff-warning-banner {
+  background: #c00000;
+  color: #ffffff;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 9px 0;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
+.staff-warning-track {
+  display: inline-flex;
+  animation: staff-warning-scroll 16s linear infinite;
+}
+
+.staff-warning-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding-right: 70px;
+}
+
+.staff-warning-icon { flex-shrink: 0; }
+
+@keyframes staff-warning-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 .error-banner {
   background: #c00000;
   color: #ffffff;
   padding: 18px 20px;
   text-align: center;
   position: sticky;
-  top: 0;
+  top: 38px;
   z-index: 50;
 }
 
