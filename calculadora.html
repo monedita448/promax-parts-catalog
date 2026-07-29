@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora dólares/pesos</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f2f2f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    padding: 24px 16px;
+  }
+  .card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e3e2dd;
+    padding: 28px 24px;
+  }
+  .greeting {
+    font-size: 14px;
+    color: #6b6a64;
+    margin: 0 0 4px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 24px;
+    color: #1c1c1a;
+  }
+  .field {
+    margin-bottom: 14px;
+  }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: #6b6a64;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .field .input-row {
+    display: flex;
+    align-items: center;
+    border: 1px solid #d8d7d1;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #fafaf8;
+  }
+  .field .input-row .flag {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a4a45;
+    margin-right: 8px;
+    min-width: 34px;
+  }
+  .field input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    font-weight: 500;
+    color: #1c1c1a;
+    outline: none;
+    width: 100%;
+    min-width: 0;
+  }
+  .swap-row {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0 14px;
+  }
+  .swap-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #d8d7d1;
+    background: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    color: #4a4a45;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .swap-btn:hover { background: #f2f2f0; }
+  .rate-line {
+    font-size: 12px;
+    color: #6b6a64;
+    text-align: center;
+    margin: 10px 0 4px;
+    line-height: 1.5;
+  }
+  .rate-line.offline { color: #9a5b1f; }
+  .refresh-btn {
+    display: block;
+    margin: 10px auto 0;
+    background: none;
+    border: none;
+    color: #2f6fed;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  .refresh-btn:hover { text-decoration: underline; }
+  .refresh-btn:disabled { color: #b3b2ab; cursor: default; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <p class="greeting" id="greeting"></p>
+  <h1>Calculadora dólares/pesos</h1>
+
+  <div class="field">
+    <label for="usd">Dólares (USD)</label>
+    <div class="input-row">
+      <span class="flag">USD</span>
+      <input type="text" inputmode="decimal" id="usd" placeholder="0.00" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="swap-row">
+    <button class="swap-btn" id="swapBtn" title="Invertir" aria-label="Invertir campos">⇅</button>
+  </div>
+
+  <div class="field">
+    <label for="cop">Pesos colombianos (COP)</label>
+    <div class="input-row">
+      <span class="flag">COP</span>
+      <input type="text" inputmode="decimal" id="cop" placeholder="0" autocomplete="off">
+    </div>
+  </div>
+
+  <p class="rate-line" id="rateLine">Cargando tasa de cambio...</p>
+  <button class="refresh-btn" id="refreshBtn">Actualizar tasa ahora</button>
+  <p style="text-align:center; margin-top:16px;"><a href="index.html" style="font-size:13px; color:#2f6fed; text-decoration:none;">&larr; Volver al catálogo</a></p>
+</div>
+
+<script src="rates.js"></script>
+<script>
+(function () {
+  var USER_NAME = 'Pablo';
+
+  var usdInput = document.getElementById('usd');
+  var copInput = document.getElementById('cop');
+  var rateLine = document.getElementById('rateLine');
+  var refreshBtn = document.getElementById('refreshBtn');
+  var swapBtn = document.getElementById('swapBtn');
+  var greetingEl = document.getElementById('greeting');
+
+  var state = { rate: null, timestamp: null, offline: false };
+
+  function setGreeting() {
+    var h = new Date().getHours();
+    var g;
+    if (h >= 5 && h < 12) g = 'Buenos días';
+    else if (h >= 12 && h < 19) g = 'Buenas tardes';
+    else g = 'Buenas noches';
+    greetingEl.textContent = g + ', ' + USER_NAME;
+  }
+
+  function formatTime(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    return d.toLocaleDateString('es-CO') + ' ' + d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function updateRateLine() {
+    if (!state.rate) {
+      rateLine.textContent = 'No se pudo obtener la tasa de cambio.';
+      rateLine.classList.add('offline');
+      return;
+    }
+    var formattedRate = state.rate.toLocaleString('es-CO', { maximumFractionDigits: 2 });
+    if (state.offline) {
+      rateLine.textContent = 'Sin conexión — usando tasa en caché: 1 USD = ' + formattedRate + ' COP (actualizada ' + formatTime(state.timestamp) + ')';
+      rateLine.classList.add('offline');
+    } else {
+      rateLine.textContent = '1 USD = ' + formattedRate + ' COP  ·  actualizada ' + formatTime(state.timestamp);
+      rateLine.classList.remove('offline');
+    }
+  }
+
+  function recalc(source) {
+    if (!state.rate) return;
+    if (source === 'usd') {
+      var usdVal = parseFloat(usdInput.value.replace(/,/g, ''));
+      if (isNaN(usdVal)) { copInput.value = ''; return; }
+      copInput.value = (usdVal * state.rate).toLocaleString('es-CO', { maximumFractionDigits: 2 });
+    } else {
+      var copVal = parseFloat(copInput.value.replace(/,/g, ''));
+      if (isNaN(copVal)) { usdInput.value = ''; return; }
+      usdInput.value = (copVal / state.rate).toLocaleString('en-US', { maximumFractionDigits: 2 });
+    }
+  }
+
+  function loadRate(force) {
+    if (force) {
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = 'Actualizando...';
+    }
+    RATES.ensureRate(force, function (result) {
+      state.rate = result.rate;
+      state.timestamp = result.timestamp;
+      state.offline = result.offline;
+      updateRateLine();
+      recalc(usdInput.value ? 'usd' : 'cop');
+      if (force) {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = 'Actualizar tasa ahora';
+      }
+    });
+  }
+
+  usdInput.addEventListener('input', function () { recalc('usd'); });
+  copInput.addEventListener('input', function () { recalc('cop'); });
+
+  swapBtn.addEventListener('click', function () {
+    var usdField = usdInput.closest('.field');
+    var copField = copInput.closest('.field');
+    var parent = usdField.parentNode;
+    if (usdField.nextElementSibling && usdField.nextElementSibling.classList.contains('swap-row')) {
+      parent.insertBefore(copField, usdField);
+    } else {
+      parent.insertBefore(usdField, copField);
+    }
+  });
+
+  refreshBtn.addEventListener('click', function () { loadRate(true); });
+
+  setGreeting();
+  loadRate(false);
+})();
+</script>
+
+</body>
+</html>
