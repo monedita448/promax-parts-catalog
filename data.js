@@ -53,7 +53,7 @@ const CATALOG = [
       { id: "14-housing", category: "Back housing", name: { en: "Back housing", es: "Carcasa trasera" }, gradeKey: "genuine-oem-pull", inStock: true, price: 103.64, colors: ["Space Black", "Silver", "Gold", "Deep Purple"], img: "images/14pm-housing.jpg", note: { en: "", es: "" } },
       { id: "14-rearcam", category: "Camera", name: { en: "Rear camera module (main)", es: "Módulo de cámara trasera (principal)" }, gradeKey: "genuine", inStock: true, price: 47.95, colors: [], img: "images/14pm-rearcam.jpg", note: { en: "Ultra-wide (0.5x) module also available, $23.44.", es: "También disponible el módulo ultra gran angular (0.5x), $23.44." } },
       { id: "14-frontcam", category: "Camera", name: { en: "Front camera module", es: "Módulo de cámara frontal" }, gradeKey: "genuine", inStock: true, price: 18.30, colors: [], img: "images/14pm-frontcam.jpg", note: { en: "", es: "" } },
-      { id: "14-charging", category: "Charging port", name: { en: "Charging port flex", es: "Flex del puerto de carga" }, gradeKey: "premium", inStock: true, price: 19.95, colors: ["Deep Purple", "Gold", "Silver"], img: "images/14pm-charging.jpg", note: { en: "", es: "" } },
+      { id: "14-charging", category: "Charging port", name: { en: "Charging port flex", es: "Flex del puerto de carga" }, gradeKey: "premium", inStock: false, price: 19.95, colors: ["Deep Purple", "Gold", "Silver"], img: "images/14pm-charging.jpg", note: { en: "", es: "" } },
       { id: "14-loudspeaker", category: "Speaker", name: { en: "Loud speaker", es: "Altavoz" }, gradeKey: "premium", inStock: true, price: 6.19, colors: [], img: "images/14pm-loudspeaker.jpg", note: { en: "", es: "" } },
       { id: "14-earspeaker", category: "Speaker", name: { en: "Ear speaker", es: "Auricular" }, gradeKey: "genuine", inStock: true, price: 13.57, colors: [], img: "images/14pm-earspeaker.jpg", note: { en: "", es: "" } }
     ]
@@ -62,13 +62,13 @@ const CATALOG = [
     model: "15",
     label: "iPhone 15 Pro Max",
     products: [
-      { id: "15-screen", category: "Display", name: { en: "Display assembly", es: "Pantalla completa" }, gradeKey: "premium-refurbished", inStock: true, price: 177.00, colors: ["Black"], img: "images/15pm-screen.jpg", note: { en: "", es: "" } },
+      { id: "15-screen", category: "Display", name: { en: "Display assembly", es: "Pantalla completa" }, gradeKey: "premium-refurbished", inStock: false, price: 177.00, colors: ["Black"], img: "images/15pm-screen.jpg", note: { en: "", es: "" } },
       { id: "15-housing", category: "Back housing", name: { en: "Back glass w/ small parts", es: "Tapa trasera de vidrio con piezas pequeñas" }, gradeKey: "genuine-oem-pull", inStock: true, price: 79.00, colors: ["White Titanium", "Black Titanium"], img: "images/15pm-housing.jpg", note: { en: "A lower Grade B+ cosmetic tier is available for $68.79.", es: "Existe una versión cosmética Grado B+ más económica por $68.79." } },
       { id: "15-rearcam", category: "Camera", name: { en: "Telephoto rear camera (3x)", es: "Cámara trasera telefoto (3x)" }, gradeKey: "genuine", inStock: true, price: 47.17, colors: [], img: "images/15pm-rearcam.jpg", note: { en: "Ultra-wide (0.5x) module also available, $16.95.", es: "También disponible el módulo ultra gran angular (0.5x), $16.95." } },
       { id: "15-frontcam", category: "Camera", name: { en: "Front camera module", es: "Módulo de cámara frontal" }, gradeKey: "genuine", inStock: true, price: 25.00, colors: [], img: "images/15pm-frontcam.jpg", note: { en: "Requires Face ID transfer from the original module to calibrate.", es: "Requiere transferir el Face ID del módulo original para calibrarse." } },
       { id: "15-charging", category: "Charging port", name: { en: "Charging port flex", es: "Flex del puerto de carga" }, gradeKey: "premium", inStock: true, price: 26.50, colors: ["Natural Titanium", "Blue Titanium", "White Titanium"], img: "images/15pm-charging.jpg", note: { en: "", es: "" } },
       { id: "15-loudspeaker", category: "Speaker", name: { en: "Loud speaker", es: "Altavoz" }, gradeKey: "genuine", inStock: true, price: 14.07, colors: [], img: "images/15pm-loudspeaker.jpg", note: { en: "", es: "" } },
-      { id: "15-earspeaker", category: "Speaker", name: { en: "Ear speaker", es: "Auricular" }, gradeKey: "genuine", inStock: true, price: 12.24, colors: [], img: "images/15pm-earspeaker.jpg", note: { en: "Proximity sensor flex sold separately, $11.32.", es: "El flex del sensor de proximidad se vende por separado, $11.32." } }
+      { id: "15-earspeaker", category: "Speaker", name: { en: "Ear speaker", es: "Auricular" }, gradeKey: "genuine", inStock: false, price: 12.24, colors: [], img: "images/15pm-earspeaker.jpg", note: { en: "Proximity sensor flex sold separately, $11.32.", es: "El flex del sensor de proximidad se vende por separado, $11.32." } }
     ]
   },
   {
