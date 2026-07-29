@@ -1,5 +1,5 @@
 {
   "status": "error",
-  "reason": "missing_credentials",
-  "checkedAt": "2026-07-29T13:24:02.079846+00:00"
+  "reason": "all_price_fetches_failed",
+  "checkedAt": "2026-07-29T14:18:42.660693+00:00"
 }
