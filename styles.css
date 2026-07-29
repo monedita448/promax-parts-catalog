@@ -20,6 +20,17 @@
   text-align: center;
 }
 
+.gate-greeting {
+  font-size: 13px;
+  color: #6b6a64;
+  margin: 0 0 12px;
+}
+
+.gate-penguin {
+  display: block;
+  margin: 0 auto 12px;
+}
+
 .gate-label {
   font-size: 12px;
   text-transform: uppercase;
@@ -72,17 +83,10 @@
 }
 
 .error-banner-line1 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  margin: 0 0 8px;
-  line-height: 1.4;
-}
-
-.error-banner-line2 {
-  font-size: 15px;
-  font-weight: 600;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 :root {
@@ -165,15 +169,49 @@ header {
 
 .lang-btn {
   font-size: 13px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid #d21f1f;
+  background: var(--card);
+  cursor: pointer;
+  color: #d21f1f;
+}
+
+.lang-btn:hover { background: #fdeaea; }
+
+.hide-prices-btn {
+  font-size: 13px;
   padding: 5px 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--card);
   cursor: pointer;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
-.lang-btn:hover { border-color: var(--accent); color: var(--accent); }
+.hide-prices-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.price-hidden-note {
+  display: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+body.prices-hidden .card .price,
+body.prices-hidden .card .cop-line,
+body.prices-hidden .card .shipping-row {
+  display: none;
+}
+
+body.prices-hidden .card .price-hidden-note {
+  display: block;
+}
 
 main {
   max-width: 1100px;

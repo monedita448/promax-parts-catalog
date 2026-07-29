@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
-Logs into Injured Gadgets with Playwright, re-checks the price AND the
-stock status of every product listed in scripts/product_urls.json, and
-patches the matching `price:` / `inStock:` fields for that product id
-directly in ../data.js (each product is written on a single line, so
-this is a line-level regex substitution, not a JS parser).
+Re-checks the price AND the stock status of every product listed in
+scripts/product_urls.json directly from Injured Gadgets' public product
+pages (confirmed via manual spot-check that prices and stock status are
+visible to anonymous, logged-out visitors - no wholesale account gating
+on this site), and patches the matching `price:` / `inStock:` fields for
+that product id directly in ../data.js (each product is written on a
+single line, so this is a line-level regex substitution, not a JS
+parser).
+
+No login, no credentials, nothing to configure in GitHub Actions secrets
+- this script only ever visits public pages anonymously.
 
 Always writes ../status.json with {"status": "ok"|"error", "checkedAt":
 ISO timestamp, "reason": "..."} so the live site can show a warning
-banner if the last check failed (e.g. the account got logged out or
-rate-limited). This file is written even when the check fails -
-data.js is only touched if a price/stock value was actually found and
-parsed.
+banner if the last check failed (e.g. Injured Gadgets changed their page
+markup). This file is written even when the check fails - data.js is
+only touched if a price/stock value was actually found and parsed.
 
 Stock status is read from Magento's standard availability markup
 (`.availability.in-stock` / `.availability.out-of-stock`), with a
@@ -20,10 +25,6 @@ implying the item is backordered). If none of those signals are found,
 stock status is left untouched in data.js rather than guessed at - the
 whole point of this field is to be trustworthy, so "unknown" is treated
 as "leave the last known value alone," never as "assume available."
-
-Requires env vars IG_EMAIL and IG_PASSWORD (set as GitHub Actions
-secrets - see .github/workflows/update-prices.yml). Never hardcode
-credentials in this file.
 """
 import json
 import os
@@ -37,7 +38,6 @@ DATA_JS = BASE_DIR / "data.js"
 STATUS_JSON = BASE_DIR / "status.json"
 URLS_JSON = BASE_DIR / "scripts" / "product_urls.json"
 
-LOGIN_URL = "https://www.injuredgadgets.com/customer/account/login/"
 PRICE_SELECTOR = ".product-info-main .price, .product-info-price .price, [data-price-type='finalPrice'] .price, .price"
 STOCK_SELECTOR = ".availability .value, .stock .value, .availability, .stock"
 
@@ -50,16 +50,6 @@ def write_status(status, reason=""):
             "checkedAt": datetime.now(timezone.utc).isoformat()
         }, f, indent=2)
         f.write("\n")
-
-
-def login(page, email, password):
-    page.goto(LOGIN_URL, wait_until="domcontentloaded")
-    page.fill("#email", email)
-    page.fill("#pass", password)
-    page.click("#send2")
-    page.wait_for_load_state("networkidle")
-    if "login" in page.url:
-        raise RuntimeError("login_failed")
 
 
 def extract_price(page):
@@ -134,13 +124,6 @@ def patch_stock(lines, product_id, in_stock):
 def run():
     from playwright.sync_api import sync_playwright
 
-    email = os.environ.get("IG_EMAIL")
-    password = os.environ.get("IG_PASSWORD")
-    if not email or not password:
-        write_status("error", "missing_credentials")
-        print("IG_EMAIL / IG_PASSWORD not set.", file=sys.stderr)
-        return False
-
     with open(URLS_JSON) as f:
         products = json.load(f)["products"]
 
@@ -157,13 +140,6 @@ def run():
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page()
-        try:
-            login(page, email, password)
-        except Exception as e:
-            browser.close()
-            write_status("error", "login_failed")
-            print("Login failed:", e, file=sys.stderr)
-            return False
 
         for prod in products:
             pid, url = prod["id"], prod["url"]
@@ -230,15 +206,15 @@ def run():
     if stock_unknown:
         print("Stock status unknown (left as-is):", ", ".join(stock_unknown))
 
-    # Login worked - only write data.js if something actually changed.
+    # Only write data.js if something actually changed.
     if price_changes or stock_changes:
         with open(DATA_JS, "w", encoding="utf-8") as f:
             f.writelines(lines)
 
-    # If every single product failed to fetch even after a successful
-    # login, treat that as a systemic problem (e.g. IG changed their
-    # page markup, or is serving a block/rate-limit page instead of the
-    # real product page) rather than a handful of one-off misses.
+    # If every single product failed to fetch, treat that as a systemic
+    # problem (e.g. IG changed their page markup, or is serving a
+    # block/rate-limit page instead of the real product page) rather
+    # than a handful of one-off misses.
     if failures and len(failures) == len(products):
         write_status("error", "all_price_fetches_failed")
         return False

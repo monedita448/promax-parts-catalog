@@ -28,12 +28,33 @@
     document.documentElement.style.overflow = '';
   }
 
+  function greetingText() {
+    var h = new Date().getHours();
+    var g = h >= 5 && h < 12 ? 'Buenos días' : h >= 12 && h < 19 ? 'Buenas tardes' : 'Buenas noches';
+    return g + ', Pablo';
+  }
+
+  var PENGUIN_SVG =
+    '<svg class="gate-penguin" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">' +
+      '<ellipse cx="28" cy="30" rx="11" ry="21" fill="#2c2c2a"/>' +
+      '<ellipse cx="28" cy="35" rx="6.5" ry="14" fill="#ffffff"/>' +
+      '<ellipse cx="20" cy="26" rx="2.6" ry="7" fill="#2c2c2a" transform="rotate(-15 20 26)"/>' +
+      '<ellipse cx="36" cy="26" rx="2.6" ry="7" fill="#2c2c2a" transform="rotate(15 36 26)"/>' +
+      '<circle cx="25" cy="15" r="1.6" fill="#2c2c2a"/>' +
+      '<circle cx="31" cy="15" r="1.6" fill="#2c2c2a"/>' +
+      '<path d="M26 18 L28 22 L30 18 Z" fill="#ef9f27"/>' +
+      '<ellipse cx="23" cy="50" rx="3" ry="1.6" fill="#ef9f27"/>' +
+      '<ellipse cx="33" cy="50" rx="3" ry="1.6" fill="#ef9f27"/>' +
+    '</svg>';
+
   function showGate() {
     document.documentElement.style.overflow = 'hidden';
     var overlay = document.createElement('div');
     overlay.id = 'gateOverlay';
     overlay.innerHTML =
       '<div class="gate-card">' +
+        '<p class="gate-greeting">' + greetingText() + '</p>' +
+        PENGUIN_SVG +
         '<p class="gate-label">Password</p>' +
         '<input type="password" id="gateInput" autocomplete="off" inputmode="numeric">' +
         '<button id="gateSubmit" type="button">Enter</button>' +

@@ -6,13 +6,17 @@
   var brandEl = document.getElementById('brand');
   var calcLinkEl = document.getElementById('calcLink');
   var langBtn = document.getElementById('langBtn');
+  var hidePricesBtn = document.getElementById('hidePricesBtn');
 
   var activeModel = CATALOG[0].model;
   var lang = getLang();
   var rateState = { rate: null, offline: false, loaded: false };
+  // Not persisted on purpose: prices should default back to visible on a
+  // fresh load, and only be hidden with a deliberate tap right before
+  // showing the screen to someone else.
+  var pricesHidden = false;
 
-  var ERROR_BANNER_LINE1 = "hay un error en el sistema que actualiza los precios, por favor llamar a felipe antes de proceder";
-  var ERROR_BANNER_LINE2 = "por favor mandar una foto de la siguiente frase a felipe inmediatamente, [the injured gadgets account where you where fetching your prices from has probably rate limit your traffic, your data.js flle is probably corrupted] Gracias";
+  var ERROR_BANNER_LINE1 = "Hay un problema con el sistema que verifica los precios y la disponibilidad — por favor llama a Felipe antes de cotizar con esta información.";
 
   function checkStatusBanner() {
     fetch('status.json', { cache: 'no-store' })
@@ -21,7 +25,6 @@
         if (!data || data.status !== 'error') return;
         var banner = document.getElementById('errorBanner');
         banner.querySelector('.error-banner-line1').textContent = ERROR_BANNER_LINE1;
-        banner.querySelector('.error-banner-line2').textContent = ERROR_BANNER_LINE2;
         banner.style.display = 'block';
       })
       .catch(function () {});
@@ -61,6 +64,7 @@
     searchEl.placeholder = s.searchPlaceholder;
     calcLinkEl.textContent = s.calcLink;
     langBtn.textContent = s.langButton;
+    hidePricesBtn.textContent = pricesHidden ? s.showPrices : s.hidePrices;
   }
 
   function renderTabs() {
@@ -182,7 +186,8 @@
       noteHtml +
       (outOfStock
         ? '<p class="out-of-stock-note">' + t(UI_STRINGS).outOfStockNote + '</p>'
-        : '<p class="price">' + money(product.price) + '</p>' +
+        : '<p class="price-hidden-note">' + t(UI_STRINGS).pricesHiddenNote + '</p>' +
+          '<p class="price">' + money(product.price) + '</p>' +
           copHtml +
           '<div class="shipping-row">' +
             '<label>' + t(UI_STRINGS).shippingLabel + '</label>' +
@@ -282,6 +287,12 @@
     lang = lang === 'en' ? 'es' : 'en';
     setLang(lang);
     renderAll();
+  });
+
+  hidePricesBtn.addEventListener('click', function () {
+    pricesHidden = !pricesHidden;
+    document.body.classList.toggle('prices-hidden', pricesHidden);
+    hidePricesBtn.textContent = pricesHidden ? t(UI_STRINGS).showPrices : t(UI_STRINGS).hidePrices;
   });
 
   renderAll();

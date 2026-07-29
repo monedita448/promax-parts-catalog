@@ -33,16 +33,21 @@ plain HTML/CSS/JS.
   button — generates a plain PNG with just the product photo and its
   name (no price, grade, or sourcing info) for Pablo to send to his own
   customers.
+- A "Hide prices" button in the header instantly hides every price, COP
+  conversion, and shipping calculator on the page (the product photo,
+  name, grade, and download button stay visible) — for browsing the
+  catalog with someone else looking at the screen. It resets to visible
+  on every fresh page load; it does not persist.
 
 ## Updating prices and stock
 
 Prices *and stock status* update themselves. A GitHub Actions workflow
-(`.github/workflows/update-prices.yml`) runs every 2 days, logs into
-Injured Gadgets with the credentials in your repo secrets, re-checks the
-price and availability on each of the 39 tracked product pages
-(`scripts/product_urls.json`), and commits straight to `data.js` if
-anything changed — no manual editing, no OpenCode step, nothing to run
-yourself.
+(`.github/workflows/update-prices.yml`) runs every 2 days, visits each of
+the 39 tracked product pages (`scripts/product_urls.json`) on Injured
+Gadgets **anonymously — no login, no account, no credentials** (confirmed
+by checking their site logged out: prices and stock status are fully
+public), and commits straight to `data.js` if anything changed. Nothing
+to configure, nothing to run yourself, no GitHub secrets needed at all.
 
 If a product goes out of stock, its card on the site automatically gets
 a red "Out of stock" badge, drops its price/shipping calculator (so Pablo
@@ -52,23 +57,11 @@ can't tell whether something is in stock (page markup changed, page
 didn't load, etc.), it leaves the last known status alone rather than
 guessing — it will never silently assume something is available.
 
-**One-time setup**, in the GitHub repo's Settings → Secrets and variables
-→ Actions:
-- `IG_EMAIL` — your Injured Gadgets account email
-- `IG_PASSWORD` — your Injured Gadgets account password
-
-That's it — the workflow already has write access to push commits.
-
 **Worth knowing:**
-- This logs into your real wholesale account on an unattended schedule.
-  Some sites flag or rate-limit automated logins from cloud IP ranges;
-  if that ever happens to your account, disable the workflow (Actions
-  tab → "Update parts prices" → "..." → Disable) and fall back to
-  editing `data.js` by hand.
-- If Injured Gadgets changes their login page or price markup, the
-  script will fail loudly (visible in the Actions tab) rather than
-  silently writing bad data — `data.js` is only overwritten if a price
-  was actually found and parsed.
+- If Injured Gadgets changes their page markup, the script will fail
+  loudly (visible in the Actions tab, and via the red banner on the live
+  site) rather than silently writing bad data — `data.js` is only
+  overwritten if a price/stock value was actually found and parsed.
 - You can trigger a check manually any time from the Actions tab
   ("Update parts prices" → "Run workflow"), no need to wait 2 days.
 - `colors` and `note` fields are not auto-updated — edit those in

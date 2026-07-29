@@ -25,9 +25,6 @@ jobs:
 
       - name: Run price check
         id: prices
-        env:
-          IG_EMAIL: ${{ secrets.IG_EMAIL }}
-          IG_PASSWORD: ${{ secrets.IG_PASSWORD }}
         run: python scripts/update_prices.py
 
       - name: Commit status.json and any price changes
