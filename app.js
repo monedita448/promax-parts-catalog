@@ -79,7 +79,80 @@
     });
   }
 
-  function buildCard(product) {
+  function sanitizeFilename(str) {
+    return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '') || 'product';
+  }
+
+  function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+    var words = text.split(' ');
+    var line = '';
+    var lines = [];
+    words.forEach(function (word) {
+      var testLine = line + word + ' ';
+      if (ctx.measureText(testLine).width > maxWidth && line !== '') {
+        lines.push(line.trim());
+        line = word + ' ';
+      } else {
+        line = testLine;
+      }
+    });
+    lines.push(line.trim());
+    lines.forEach(function (l, i) {
+      ctx.fillText(l, x, y + i * lineHeight);
+    });
+    return lines.length;
+  }
+
+  // Builds a plain, client-safe image: just the product photo and its
+  // name, no price, no grade, no shipping, nothing that identifies where
+  // it's sourced from. Meant for Pablo to send straight to a customer.
+  function downloadProductImage(product, modelLabel) {
+    var displayName = modelLabel + ' — ' + t(product.name);
+    var img = new Image();
+    img.onload = function () {
+      var W = 800, H = 860;
+      var boxSize = 680;
+      var boxX = (W - boxSize) / 2;
+      var boxY = 40;
+
+      var canvas = document.createElement('canvas');
+      canvas.width = W;
+      canvas.height = H;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+
+      var scale = Math.min(boxSize / img.width, boxSize / img.height);
+      var drawW = img.width * scale;
+      var drawH = img.height * scale;
+      var drawX = boxX + (boxSize - drawW) / 2;
+      var drawY = boxY + (boxSize - drawH) / 2;
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+      ctx.fillStyle = '#1c1c1a';
+      ctx.font = '600 30px -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+      ctx.textAlign = 'center';
+      wrapCanvasText(ctx, displayName, W / 2, boxY + boxSize + 60, W - 80, 38);
+
+      canvas.toBlob(function (blob) {
+        if (!blob) return;
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = sanitizeFilename(displayName) + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      }, 'image/png');
+    };
+    img.onerror = function () {
+      alert(lang === 'es' ? 'No se pudo generar la imagen.' : 'Could not generate the image.');
+    };
+    img.src = product.img;
+  }
+
+  function buildCard(product, modelLabel) {
     var badgeClass = gradeBadgeClass(product.gradeKey);
     var gradeLabel = t(GRADE_I18N[product.gradeKey]);
     var name = t(product.name);
@@ -116,7 +189,8 @@
             '<select>' + shippingOptionsHtml(SHIPPING_OPTIONS[0].id) + '</select>' +
             '<div class="total-line"><span class="label">' + t(UI_STRINGS).totalLabel + '</span><span class="value total-value">' + money(product.price) + '</span></div>' +
             '<div class="total-line cop-total-line"><span></span><span class="value total-cop-value">' + (copEquivalent(product.price) || '') + '</span></div>' +
-          '</div>');
+          '</div>' +
+          '<button class="download-btn" type="button">' + t(UI_STRINGS).downloadClientImage + '</button>');
 
     if (!outOfStock) {
       var select = card.querySelector('select');
@@ -127,6 +201,11 @@
         var total = product.price + (opt ? opt.price : 0);
         totalValue.textContent = money(total);
         totalCopValue.textContent = copEquivalent(total) || '';
+      });
+
+      var downloadBtn = card.querySelector('.download-btn');
+      downloadBtn.addEventListener('click', function () {
+        downloadProductImage(product, modelLabel);
       });
     }
 
@@ -175,7 +254,7 @@
 
       var row = document.createElement('div');
       row.className = 'grid';
-      matches.forEach(function (p) { row.appendChild(buildCard(p)); });
+      matches.forEach(function (p) { row.appendChild(buildCard(p, m.label)); });
       gridEl.appendChild(row);
     });
 

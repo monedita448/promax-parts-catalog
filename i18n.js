@@ -14,7 +14,8 @@ const UI_STRINGS = {
     rateOffline: "offline rate",
     langButton: "ES",
     outOfStock: "Out of stock",
-    outOfStockNote: "Currently unavailable from the supplier — do not offer this to a customer until it shows in stock again."
+    outOfStockNote: "Currently unavailable from the supplier — do not offer this to a customer until it shows in stock again.",
+    downloadClientImage: "Download image for client"
   },
   es: {
     brand: "Catálogo de piezas Pro Max",
@@ -29,7 +30,8 @@ const UI_STRINGS = {
     rateOffline: "tasa sin conexión",
     langButton: "EN",
     outOfStock: "Agotado",
-    outOfStockNote: "No disponible con el proveedor por el momento — no ofrecer este producto a un cliente hasta que vuelva a aparecer disponible."
+    outOfStockNote: "No disponible con el proveedor por el momento — no ofrecer este producto a un cliente hasta que vuelva a aparecer disponible.",
+    downloadClientImage: "Descargar imagen para cliente"
   }
 };
 

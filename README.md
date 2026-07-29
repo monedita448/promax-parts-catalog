@@ -24,6 +24,15 @@ plain HTML/CSS/JS.
 - `image-manifest.json` / `fetch_images.py` — used once, locally, to pull
   the real product photos into `images/` before the first commit. Neither
   file is meant to end up in the published repo (see `.gitignore`).
+- `gate.js` — a basic client-side password gate shown on first visit
+  (per browser). Not real security — just enough to keep the link from
+  being casually stumbled on. Change the password by generating a new
+  SHA-256 hex hash (`node -e "console.log(require('crypto').createHash('sha256').update('NEWPASS').digest('hex'))"`)
+  and swapping `HASH_HEX` in `gate.js`.
+- Each product card (when in stock) has a "Download image for client"
+  button — generates a plain PNG with just the product photo and its
+  name (no price, grade, or sourcing info) for Pablo to send to his own
+  customers.
 
 ## Updating prices and stock
 

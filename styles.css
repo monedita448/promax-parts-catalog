@@ -1,5 +1,66 @@
 * { box-sizing: border-box; }
 
+#gateOverlay {
+  position: fixed;
+  inset: 0;
+  background: #1c1c1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.gate-card {
+  width: 100%;
+  max-width: 280px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.gate-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b6a64;
+  margin: 0 0 10px;
+}
+
+.gate-card input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d8d7d1;
+  border-radius: 8px;
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.gate-card input:focus { border-color: #2f6fed; }
+
+.gate-card button {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #2f6fed;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gate-card button:hover { background: #2559c9; }
+
+.gate-error {
+  color: #a01d1d;
+  font-size: 12.5px;
+  margin: 10px 0 0;
+}
+
 .error-banner {
   background: #c00000;
   color: #ffffff;
@@ -283,6 +344,20 @@ main {
 
 .total-line .label { color: var(--text-muted); }
 .total-line .value { font-weight: 600; }
+
+.download-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.download-btn:hover { border-color: var(--accent); color: var(--accent); }
 
 .notes-box {
   background: #fdf6e3;

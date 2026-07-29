@@ -111,9 +111,65 @@
   }
   .refresh-btn:hover { text-decoration: underline; }
   .refresh-btn:disabled { color: #b3b2ab; cursor: default; text-decoration: none; }
+
+  #gateOverlay {
+    position: fixed;
+    inset: 0;
+    background: #1c1c1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 20px;
+  }
+  .gate-card {
+    width: 100%;
+    max-width: 280px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .gate-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b6a64;
+    margin: 0 0 10px;
+  }
+  .gate-card input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d8d7d1;
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+    margin-bottom: 12px;
+  }
+  .gate-card input:focus { border-color: #2f6fed; }
+  .gate-card button {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    background: #2f6fed;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .gate-card button:hover { background: #2559c9; }
+  .gate-error {
+    color: #a01d1d;
+    font-size: 12.5px;
+    margin: 10px 0 0;
+  }
 </style>
 </head>
 <body>
+
+<script src="gate.js"></script>
 
 <div class="card">
   <p class="greeting" id="greeting"></p>
