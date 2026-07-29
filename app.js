@@ -11,6 +11,22 @@
   var lang = getLang();
   var rateState = { rate: null, offline: false, loaded: false };
 
+  var ERROR_BANNER_LINE1 = "hay un error en el sistema que actualiza los precios, por favor llamar a felipe antes de proceder";
+  var ERROR_BANNER_LINE2 = "por favor mandar una foto de la siguiente frase a felipe inmediatamente, [the injured gadgets account where you where fetching your prices from has probably rate limit your traffic, your data.js flle is probably corrupted] Gracias";
+
+  function checkStatusBanner() {
+    fetch('status.json', { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data || data.status !== 'error') return;
+        var banner = document.getElementById('errorBanner');
+        banner.querySelector('.error-banner-line1').textContent = ERROR_BANNER_LINE1;
+        banner.querySelector('.error-banner-line2').textContent = ERROR_BANNER_LINE2;
+        banner.style.display = 'block';
+      })
+      .catch(function () {});
+  }
+
   function t(dict) {
     return dict[lang] || dict.en;
   }
@@ -68,6 +84,7 @@
     var gradeLabel = t(GRADE_I18N[product.gradeKey]);
     var name = t(product.name);
     var note = t(product.note);
+    var outOfStock = product.inStock === false;
     var colorsLabel = product.colors && product.colors.length
       ? product.colors.map(function (c) { return t(COLOR_I18N[c] || { en: c, es: c }); }).join(' · ')
       : '';
@@ -75,33 +92,43 @@
     var noteHtml = note ? '<p class="note">' + note + '</p>' : '';
     var cop = copEquivalent(product.price);
     var copHtml = cop ? '<p class="cop-line">' + cop + '</p>' : '';
+    var stockBadgeHtml = outOfStock
+      ? '<span class="badge out-of-stock">' + t(UI_STRINGS).outOfStock + '</span>'
+      : '';
 
     var card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card' + (outOfStock ? ' is-out-of-stock' : '');
     card.innerHTML =
       '<img src="' + product.img + '" alt="' + name + '" loading="lazy" onerror="this.style.opacity=0.25">' +
-      '<span class="badge ' + badgeClass + '">' + gradeLabel + '</span>' +
+      '<div class="badge-row">' +
+        '<span class="badge ' + badgeClass + '">' + gradeLabel + '</span>' +
+        stockBadgeHtml +
+      '</div>' +
       '<h3>' + name + '</h3>' +
       colorsHtml +
       noteHtml +
-      '<p class="price">' + money(product.price) + '</p>' +
-      copHtml +
-      '<div class="shipping-row">' +
-        '<label>' + t(UI_STRINGS).shippingLabel + '</label>' +
-        '<select>' + shippingOptionsHtml(SHIPPING_OPTIONS[0].id) + '</select>' +
-        '<div class="total-line"><span class="label">' + t(UI_STRINGS).totalLabel + '</span><span class="value total-value">' + money(product.price) + '</span></div>' +
-        '<div class="total-line cop-total-line"><span></span><span class="value total-cop-value">' + (copEquivalent(product.price) || '') + '</span></div>' +
-      '</div>';
+      (outOfStock
+        ? '<p class="out-of-stock-note">' + t(UI_STRINGS).outOfStockNote + '</p>'
+        : '<p class="price">' + money(product.price) + '</p>' +
+          copHtml +
+          '<div class="shipping-row">' +
+            '<label>' + t(UI_STRINGS).shippingLabel + '</label>' +
+            '<select>' + shippingOptionsHtml(SHIPPING_OPTIONS[0].id) + '</select>' +
+            '<div class="total-line"><span class="label">' + t(UI_STRINGS).totalLabel + '</span><span class="value total-value">' + money(product.price) + '</span></div>' +
+            '<div class="total-line cop-total-line"><span></span><span class="value total-cop-value">' + (copEquivalent(product.price) || '') + '</span></div>' +
+          '</div>');
 
-    var select = card.querySelector('select');
-    var totalValue = card.querySelector('.total-value');
-    var totalCopValue = card.querySelector('.total-cop-value');
-    select.addEventListener('change', function () {
-      var opt = SHIPPING_OPTIONS.filter(function (o) { return o.id === select.value; })[0];
-      var total = product.price + (opt ? opt.price : 0);
-      totalValue.textContent = money(total);
-      totalCopValue.textContent = copEquivalent(total) || '';
-    });
+    if (!outOfStock) {
+      var select = card.querySelector('select');
+      var totalValue = card.querySelector('.total-value');
+      var totalCopValue = card.querySelector('.total-cop-value');
+      select.addEventListener('change', function () {
+        var opt = SHIPPING_OPTIONS.filter(function (o) { return o.id === select.value; })[0];
+        var total = product.price + (opt ? opt.price : 0);
+        totalValue.textContent = money(total);
+        totalCopValue.textContent = copEquivalent(total) || '';
+      });
+    }
 
     return card;
   }
@@ -130,6 +157,14 @@
       var matches = m.products.filter(function (p) { return matchesSearch(p, m.label, query); });
       if (!matches.length) return;
       anyResults = true;
+
+      // In-stock items first, so Pablo never has to scroll past
+      // unavailable parts to find what he can actually quote.
+      matches = matches.slice().sort(function (a, b) {
+        var aOut = a.inStock === false ? 1 : 0;
+        var bOut = b.inStock === false ? 1 : 0;
+        return aOut - bOut;
+      });
 
       if (query) {
         var heading = document.createElement('div');
@@ -171,6 +206,7 @@
   });
 
   renderAll();
+  checkStatusBanner();
 
   RATES.ensureRate(false, function (result) {
     rateState.rate = result.rate;

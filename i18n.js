@@ -12,7 +12,9 @@ const UI_STRINGS = {
     notesTitle: "Notes",
     ratePending: "Loading COP rate...",
     rateOffline: "offline rate",
-    langButton: "ES"
+    langButton: "ES",
+    outOfStock: "Out of stock",
+    outOfStockNote: "Currently unavailable from the supplier — do not offer this to a customer until it shows in stock again."
   },
   es: {
     brand: "Catálogo de piezas Pro Max",
@@ -25,7 +27,9 @@ const UI_STRINGS = {
     notesTitle: "Notas",
     ratePending: "Cargando tasa COP...",
     rateOffline: "tasa sin conexión",
-    langButton: "EN"
+    langButton: "EN",
+    outOfStock: "Agotado",
+    outOfStockNote: "No disponible con el proveedor por el momento — no ofrecer este producto a un cliente hasta que vuelva a aparecer disponible."
   }
 };
 

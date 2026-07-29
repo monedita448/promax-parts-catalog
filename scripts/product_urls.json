@@ -1,0 +1,49 @@
+{
+  "_comment": "Maps each data.js product id to its live product page URL, for the price-refresh script to visit.",
+  "products": [
+    { "id": "12-screen", "url": "https://www.injuredgadgets.com/premium-refurbished-oled-screen-assembly-for-iphone-12-pro-max/" },
+    { "id": "12-housing", "url": "https://www.injuredgadgets.com/oem-pull-back-housing-for-iphone-12-pro-max-grade-a-us-version-gold/" },
+    { "id": "12-rearcam", "url": "https://www.injuredgadgets.com/wide-rear-camera-for-iphone-12-pro-max-1x/" },
+    { "id": "12-frontcam", "url": "https://www.injuredgadgets.com/front-camera-module-flex-for-iphone-12-pro-max-decoupling-required/" },
+    { "id": "12-charging", "url": "https://www.injuredgadgets.com/premium-charging-dock-flex-for-iphone-12-pro-max-silver/" },
+    { "id": "12-loudspeaker", "url": "https://www.injuredgadgets.com/loud-speaker-for-iphone-12-pro-max/" },
+    { "id": "12-earspeaker", "url": "https://www.injuredgadgets.com/ear-speaker-for-iphone-12-pro-max-soldering-required/" },
+
+    { "id": "13-screen", "url": "https://www.injuredgadgets.com/premium-refurbished-oled-screen-assembly-for-iphone-13-pro-max-black/" },
+    { "id": "13-housing", "url": "https://www.injuredgadgets.com/oem-pull-back-housing-for-iphone-13-pro-max-grade-a-us-version-graphite/" },
+    { "id": "13-rearcam", "url": "https://www.injuredgadgets.com/rear-camera-for-iphone-13-pro-13-pro-max/" },
+    { "id": "13-frontcam", "url": "https://www.injuredgadgets.com/front-camera-proximity-sensor-flex-for-iphone-13-pro-max/" },
+    { "id": "13-charging", "url": "https://www.injuredgadgets.com/premium-charging-dock-flex-for-iphone-13-pro-max-gold/" },
+    { "id": "13-loudspeaker", "url": "https://www.injuredgadgets.com/loud-speaker-for-iphone-13-pro-max/" },
+    { "id": "13-earspeaker", "url": "https://www.injuredgadgets.com/ear-speaker-for-iphone-13-pro-max/" },
+
+    { "id": "14-screen", "url": "https://www.injuredgadgets.com/premium-refurbished-oled-screen-and-digitizer-assembly-for-iphone-14-pro-max-black/" },
+    { "id": "14-housing", "url": "https://www.injuredgadgets.com/oem-pull-back-housing-for-iphone-14-pro-max-grade-a-us-version-space-black/" },
+    { "id": "14-rearcam", "url": "https://www.injuredgadgets.com/rear-camera-for-iphone-14-pro-max/" },
+    { "id": "14-frontcam", "url": "https://www.injuredgadgets.com/front-camera-proximity-sensor-flex-for-iphone-14-pro-max/" },
+    { "id": "14-charging", "url": "https://www.injuredgadgets.com/premium-charging-dock-flex-for-iphone-14-pro-max-gold/" },
+    { "id": "14-loudspeaker", "url": "https://www.injuredgadgets.com/premium-loud-speaker-for-iphone-14-pro-max/" },
+    { "id": "14-earspeaker", "url": "https://www.injuredgadgets.com/ear-speaker-for-iphone-14-pro-max/" },
+
+    { "id": "15-screen", "url": "https://www.injuredgadgets.com/premium-refurbished-oled-screen-assembly-for-iphone-15-pro-max/" },
+    { "id": "15-housing", "url": "https://www.injuredgadgets.com/oem-pull-back-glass-w-small-parts-for-iphone-15-pro-max-grade-a-us-version-white-titanium/" },
+    { "id": "15-rearcam", "url": "https://www.injuredgadgets.com/telephoto-rear-camera-for-iphone-15-pro-max-3x/" },
+    { "id": "15-frontcam", "url": "https://www.injuredgadgets.com/front-camera-for-iphone-15-pro-max/" },
+    { "id": "15-charging", "url": "https://www.injuredgadgets.com/premium-charging-dock-flex-for-iphone-15-pro-max-white-titanium/" },
+    { "id": "15-loudspeaker", "url": "https://www.injuredgadgets.com/loud-speaker-for-iphone-15-pro-max/" },
+    { "id": "15-earspeaker", "url": "https://www.injuredgadgets.com/ear-speaker-for-iphone-15-pro-max/" },
+
+    { "id": "16-screen", "url": "https://www.injuredgadgets.com/premium-refurbished-oled-screen-assembly-for-iphone-16-pro-max-black/" },
+    { "id": "16-housing", "url": "https://www.injuredgadgets.com/oem-pull-back-glass-w-small-parts-for-iphone-16-pro-max-grade-a-us-version-black-titanium/" },
+    { "id": "16-frontcam", "url": "https://www.injuredgadgets.com/front-camera-for-iphone-16-pro-max/" },
+    { "id": "16-charging", "url": "https://www.injuredgadgets.com/premium-charging-dock-flex-for-iphone-16-pro-max-black-titanium/" },
+    { "id": "16-loudspeaker", "url": "https://www.injuredgadgets.com/loud-speaker-for-iphone-16-pro-max/" },
+    { "id": "16-earspeaker", "url": "https://www.injuredgadgets.com/ear-speaker-w-wifi-flex-cable-for-iphone-16-pro-max/" },
+
+    { "id": "17-screen", "url": "https://www.injuredgadgets.com/premium-refurbished-oled-screen-and-digitizer-assembly-for-iphone-17-pro-max-black/" },
+    { "id": "17-rearcam", "url": "https://www.injuredgadgets.com/rear-camera-for-iphone-17-pro-17-pro-max/" },
+    { "id": "17-frontcam", "url": "https://www.injuredgadgets.com/front-camera-for-iphone-17-pro-max/" },
+    { "id": "17-charging", "url": "https://www.injuredgadgets.com/premium-charging-dock-flex-for-iphone-17-pro-max-us-version-silver/" },
+    { "id": "17-loudspeaker", "url": "https://www.injuredgadgets.com/loud-speaker-for-iphone-17-pro-max/" }
+  ]
+}

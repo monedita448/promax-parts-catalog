@@ -1,5 +1,29 @@
 * { box-sizing: border-box; }
 
+.error-banner {
+  background: #c00000;
+  color: #ffffff;
+  padding: 18px 20px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.error-banner-line1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.error-banner-line2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.5;
+}
+
 :root {
   --bg: #f2f2f0;
   --card: #ffffff;
@@ -151,17 +175,41 @@ main {
   margin-bottom: 10px;
 }
 
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
 .badge {
   display: inline-block;
   font-size: 11px;
   padding: 3px 9px;
   border-radius: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 0;
   width: fit-content;
 }
 
 .badge.genuine { background: var(--genuine-bg); color: var(--genuine-text); }
 .badge.premium { background: var(--premium-bg); color: var(--premium-text); }
+.badge.out-of-stock { background: #fbe3e3; color: #a01d1d; font-weight: 600; }
+
+.card.is-out-of-stock {
+  opacity: 0.62;
+  background: #f6f5f2;
+}
+
+.card.is-out-of-stock img {
+  filter: grayscale(60%);
+}
+
+.card .out-of-stock-note {
+  font-size: 12px;
+  color: #a01d1d;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
 
 .card h3 {
   font-size: 14px;
