@@ -1,5 +1,5 @@
 {
-  "status": "ok",
-  "reason": "",
-  "checkedAt": null
+  "status": "error",
+  "reason": "missing_credentials",
+  "checkedAt": "2026-07-29T13:24:02.079846+00:00"
 }
