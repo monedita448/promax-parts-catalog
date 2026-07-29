@@ -12,6 +12,17 @@ parser).
 No login, no credentials, nothing to configure in GitHub Actions secrets
 - this script only ever visits public pages anonymously.
 
+Injured Gadgets sits behind Cloudflare, which was confirmed (via a saved
+screenshot + HTML dump) to serve a "Just a moment..." bot-challenge page
+to a stock Playwright browser instead of the real product page - a
+Cloudflare-side bot-detection block, unrelated to login. To get past
+that, this script uses patchright (a drop-in, stealth-patched fork of
+Playwright: pip install patchright / patchright install chrome) launched
+with real Google Chrome in its recommended undetected configuration
+(persistent context, headless=False under a virtual display, no custom
+user-agent/headers). There is no guarantee this keeps working forever -
+if Cloudflare updates its detection, this may need revisiting.
+
 Always writes ../status.json with {"status": "ok"|"error", "checkedAt":
 ISO timestamp, "reason": "..."} so the live site can show a warning
 banner if the last check failed (e.g. Injured Gadgets changed their page
@@ -29,7 +40,9 @@ as "leave the last known value alone," never as "assume available."
 import json
 import os
 import re
+import shutil
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -123,7 +136,7 @@ def patch_stock(lines, product_id, in_stock):
 
 
 def run():
-    from playwright.sync_api import sync_playwright
+    from patchright.sync_api import sync_playwright
 
     with open(URLS_JSON) as f:
         products = json.load(f)["products"]
@@ -139,63 +152,78 @@ def run():
     stock_unknown = []
     debug_captured = False
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page()
+    # Patchright's own recommended "undetected" setup: launch real Google
+    # Chrome (not the bundled Chromium build) via a persistent context,
+    # headless=False (a virtual display is provided by xvfb-run in CI),
+    # and no custom user-agent/headers - all of that is what tips off
+    # Cloudflare-style bot detection in the first place.
+    profile_dir = tempfile.mkdtemp(prefix="patchright-profile-")
+    try:
+        with sync_playwright() as p:
+            context = p.chromium.launch_persistent_context(
+                user_data_dir=profile_dir,
+                channel="chrome",
+                headless=False,
+                no_viewport=True,
+            )
+            page = context.pages[0] if context.pages else context.new_page()
 
-        for prod in products:
-            pid, url = prod["id"], prod["url"]
-            try:
-                page.goto(url, wait_until="networkidle")
-            except Exception as e:
-                failures.append(pid + ": " + str(e))
-                continue
-
-            try:
-                new_price = extract_price(page)
-            except Exception as e:
-                new_price = None
-                failures.append(pid + ": price error - " + str(e))
-
-            if new_price is not None:
-                lines, result = patch_price(lines, pid, new_price)
-                if result == "NOT_FOUND":
-                    not_found.append(pid)
-                elif result is not None:
-                    price_changes.append((pid, result[0], result[1]))
-            elif new_price is None and not any(f.startswith(pid + ":") for f in failures):
-                failures.append(pid + ": could not find a price on the page")
-
-            # The very first time a price can't be found, save a
-            # screenshot and the raw page HTML so a human can see what
-            # the automated browser actually received (a real product
-            # page, a bot-check wall, a blank page, etc.) instead of
-            # guessing from a one-line error message. Only captured once
-            # per run since all 39 pages tend to fail the same way.
-            if new_price is None and not debug_captured:
+            for prod in products:
+                pid, url = prod["id"], prod["url"]
                 try:
-                    DEBUG_DIR.mkdir(parents=True, exist_ok=True)
-                    page.screenshot(path=str(DEBUG_DIR / (pid + "-screenshot.png")), full_page=True)
-                    (DEBUG_DIR / (pid + "-page.html")).write_text(page.content(), encoding="utf-8")
-                    debug_captured = True
+                    page.goto(url, wait_until="networkidle")
+                except Exception as e:
+                    failures.append(pid + ": " + str(e))
+                    continue
+
+                try:
+                    new_price = extract_price(page)
+                except Exception as e:
+                    new_price = None
+                    failures.append(pid + ": price error - " + str(e))
+
+                if new_price is not None:
+                    lines, result = patch_price(lines, pid, new_price)
+                    if result == "NOT_FOUND":
+                        not_found.append(pid)
+                    elif result is not None:
+                        price_changes.append((pid, result[0], result[1]))
+                elif new_price is None and not any(f.startswith(pid + ":") for f in failures):
+                    failures.append(pid + ": could not find a price on the page")
+
+                # The very first time a price can't be found, save a
+                # screenshot and the raw page HTML so a human can see
+                # what the automated browser actually received (a real
+                # product page, a bot-check wall, a blank page, etc.)
+                # instead of guessing from a one-line error message.
+                # Only captured once per run since all 39 pages tend to
+                # fail the same way.
+                if new_price is None and not debug_captured:
+                    try:
+                        DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+                        page.screenshot(path=str(DEBUG_DIR / (pid + "-screenshot.png")), full_page=True)
+                        (DEBUG_DIR / (pid + "-page.html")).write_text(page.content(), encoding="utf-8")
+                        debug_captured = True
+                    except Exception:
+                        pass
+
+                try:
+                    in_stock = extract_stock(page)
                 except Exception:
-                    pass
+                    in_stock = None
 
-            try:
-                in_stock = extract_stock(page)
-            except Exception:
-                in_stock = None
+                if in_stock is None:
+                    stock_unknown.append(pid)
+                else:
+                    lines, result = patch_stock(lines, pid, in_stock)
+                    if result == "NOT_FOUND":
+                        stock_not_found.append(pid)
+                    elif result is not None:
+                        stock_changes.append((pid, result[0], result[1]))
 
-            if in_stock is None:
-                stock_unknown.append(pid)
-            else:
-                lines, result = patch_stock(lines, pid, in_stock)
-                if result == "NOT_FOUND":
-                    stock_not_found.append(pid)
-                elif result is not None:
-                    stock_changes.append((pid, result[0], result[1]))
-
-        browser.close()
+            context.close()
+    finally:
+        shutil.rmtree(profile_dir, ignore_errors=True)
 
     print("=== Price check summary ===")
     if price_changes:

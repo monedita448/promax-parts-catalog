@@ -10,28 +10,26 @@ This folder is already a git repo pushed to monedita448/promax-parts-catalog
 
 1. Stage and commit every file that isn't already committed:
    git add -A
-   git commit -m "Add debug screenshot capture for price-check failures"
+   git commit -m "Switch to patchright (stealth Chrome) to get past Cloudflare"
    git push
    (If there's nothing to commit, that's fine — just tell me so.)
 
-2. Trigger a fresh run so the debug capture actually fires:
+2. Trigger a fresh run:
    gh workflow run "Update parts prices" --repo monedita448/promax-parts-catalog
-   sleep 60
-   gh run list --repo monedita448/promax-parts-catalog --limit 1
+   sleep 90
+   gh run list --repo monedita448/promax-parts-catalog --limit 1 --json databaseId,status,conclusion
 
-3. Get the run ID from step 2's output, then download the debug
-   artifact it produced (this only contains files if a price check
-   failed):
-   gh run download <RUN_ID> --repo monedita448/promax-parts-catalog --name price-check-debug --dir ./debug-download
-   (If this errors saying the artifact doesn't exist, that's actually
-   good news - it means every price was found successfully this time.
-   Tell me that instead.)
+3. Important: do NOT trust "success"/"conclusion" alone — this workflow
+   is designed to always exit cleanly even when the actual price check
+   fails internally. Get the real answer by reading the actual log
+   output. Using the databaseId from step 2:
+   gh run view <RUN_ID> --repo monedita448/promax-parts-catalog --log | grep -A 5 "Price check summary"
+   Paste me that output verbatim - specifically whether it says
+   "No price changes" / lists any "PRICE CHANGED" lines, versus whether
+   it lists any "Failed to fetch" lines.
 
-4. If the download in step 3 worked, list what's inside:
-   ls -la ./debug-download
-   Then open the .html file in that folder and search it for any of
-   these words: "cloudflare", "captcha", "just a moment", "robot",
-   "access denied", "blocked", "verify you are human". Tell me which of
-   those (if any) appear, plus the first 500 characters of visible text
-   in the HTML file (skip script/style tags), and the full file path to
-   the .png screenshot on my computer.
+4. Also check whether a debug artifact was produced (only happens if a
+   price check still failed):
+   gh run download <RUN_ID> --repo monedita448/promax-parts-catalog --name price-check-debug --dir ./debug-download-2
+   If that command errors saying no such artifact, tell me that
+   explicitly - it means everything succeeded this time.

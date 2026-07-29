@@ -21,11 +21,16 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r scripts/requirements.txt
-          playwright install --with-deps chromium
+          patchright install --with-deps chrome
 
       - name: Run price check
         id: prices
-        run: python scripts/update_prices.py
+        # headless=False (set inside update_prices.py, part of the
+        # stealth config patchright recommends to avoid Cloudflare
+        # detection) needs a real display to render into - xvfb-run
+        # provides a virtual one so this still works on a headless CI
+        # runner. -a picks a free display number automatically.
+        run: xvfb-run -a python scripts/update_prices.py
 
       - name: Upload debug artifacts (only exist if a price check failed)
         if: always()

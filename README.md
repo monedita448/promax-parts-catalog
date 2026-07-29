@@ -66,6 +66,14 @@ guessing — it will never silently assume something is available.
   ("Update parts prices" → "Run workflow"), no need to wait 2 days.
 - `colors` and `note` fields are not auto-updated — edit those in
   `data.js` by hand if they ever change.
+- Injured Gadgets sits behind Cloudflare, which was confirmed (screenshot
+  + saved HTML) to serve a bot-challenge page to a plain automated
+  browser instead of the real product page. The script uses `patchright`
+  (a stealth-patched drop-in replacement for Playwright) launched as real
+  Google Chrome to get past that. This is not a permanent guarantee — if
+  Cloudflare changes its detection, the checks may start failing again
+  (you'll see it via the red banner / failed Actions runs), and the
+  approach may need revisiting at that point.
 
 ## Running it locally
 
