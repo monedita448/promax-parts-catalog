@@ -67,12 +67,10 @@ const PIROBO_STEP_MULTIPLIER = 1.025;
 const FEDEX_PRIORITY_LOW_TIER_STATES = ["FL", "GA", "AL", "SC", "NC", "TN"];
 
 // WhatsApp number the "Order" button messages, in international format
-// with no +, spaces, or dashes (e.g. Colombia mobile: "573001234567").
-// wa.me only supports opening a chat with a single number and prefilling
-// text into it - it cannot auto-send into an existing multi-person group.
-// Left blank until a real number is supplied; the order button will warn
-// instead of opening WhatsApp until this is set.
-const ORDER_WHATSAPP_NUMBER = "";
+// with no +, spaces, or dashes. wa.me only supports opening a chat with a
+// single number and prefilling text into it - it cannot auto-send into an
+// existing multi-person group. Pablo's number (+57 304 6273122).
+const ORDER_WHATSAPP_NUMBER = "573046273122";
 
 // The two US drop addresses this catalog quotes shipping to. Pablo picks
 // one above the shipping dropdown; it determines which Priority
