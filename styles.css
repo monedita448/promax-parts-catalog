@@ -71,11 +71,12 @@
 }
 
 .staff-warning-banner {
-  background: #c00000;
-  color: #ffffff;
+  background: #fdf6e3;
+  color: #9a5b1f;
+  border-bottom: 1px solid #eddca6;
   overflow: hidden;
   white-space: nowrap;
-  padding: 9px 0;
+  padding: 6px 0;
   position: sticky;
   top: 0;
   z-index: 60;
@@ -83,20 +84,20 @@
 
 .staff-warning-track {
   display: inline-flex;
-  animation: staff-warning-scroll 16s linear infinite;
+  animation: staff-warning-scroll 34s linear infinite;
 }
 
 .staff-warning-item {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
   letter-spacing: 0.01em;
   padding-right: 70px;
 }
 
-.staff-warning-icon { flex-shrink: 0; }
+.staff-warning-icon { flex-shrink: 0; opacity: 0.8; }
 
 @keyframes staff-warning-scroll {
   from { transform: translateX(0); }
@@ -109,7 +110,7 @@
   padding: 18px 20px;
   text-align: center;
   position: sticky;
-  top: 38px;
+  top: 28px;
   z-index: 50;
 }
 
