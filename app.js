@@ -265,15 +265,6 @@
     });
   }
 
-  // Best-effort link to injuredgadgets.com's own search results for this
-  // part - there's no per-product URL stored in the catalog data, so this
-  // can't land Pablo on the exact listing, only a relevant search. Uses
-  // the site's standard Shopify-style search query.
-  function injuredGadgetsSearchUrl(product, modelLabel) {
-    var query = modelLabel + ' ' + t(product.name);
-    return 'https://www.injuredgadgets.com/search?q=' + encodeURIComponent(query);
-  }
-
   // Recommends a shipping method given the selected margin, balancing
   // speed against cost: at higher margin tiers (75%/100%) there's enough
   // cushion to suggest the fastest option regardless of a modest shipping
@@ -297,9 +288,9 @@
   }
 
   // Builds the plain-text order message sent to Pablo's own WhatsApp
-  // number: what to order, how many, which shipping method, the margin
-  // and suggested price he's quoting, and a link to search for the part
-  // on injuredgadgets.com to actually place the order.
+  // number: what to order, how many, which shipping method, and the
+  // margin and suggested price he's quoting. No source-website link -
+  // that's only relevant on the sourcing side, not for Pablo.
   function buildOrderMessage(product, modelLabel, shippingOptId, destLabel, qty, margin, suggestedPriceText) {
     var shippingLabel = t(SHIPPING_I18N[shippingOptId] || { en: shippingOptId, es: shippingOptId });
     var lines = lang === 'es'
@@ -309,8 +300,7 @@
           'Envío: ' + shippingLabel,
           'Dirección de recogida: ' + destLabel,
           'Margen aplicado: ' + Math.round(margin * 100) + '%',
-          'Precio sugerido al cliente: ' + suggestedPriceText,
-          'Buscar en Injured Gadgets: ' + injuredGadgetsSearchUrl(product, modelLabel)
+          'Precio sugerido al cliente: ' + suggestedPriceText
         ]
       : [
           modelLabel + ' — ' + t(product.name),
@@ -318,8 +308,7 @@
           'Shipping: ' + shippingLabel,
           'Pickup address: ' + destLabel,
           'Margin applied: ' + Math.round(margin * 100) + '%',
-          'Suggested price to client: ' + suggestedPriceText,
-          'Search on Injured Gadgets: ' + injuredGadgetsSearchUrl(product, modelLabel)
+          'Suggested price to client: ' + suggestedPriceText
         ];
     return lines.join('\n');
   }
