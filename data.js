@@ -3,19 +3,28 @@
 // image filenames are placeholders; see image-manifest.json for the source links to fetch.
 // gradeKey/category/colors are lookup keys translated via i18n.js. name/note have EN+ES pairs.
 
+// Verified directly against the live Injured Gadgets cart shipping
+// estimator (checkout/cart, "Estimate Shipping and Tax" widget) on
+// 2026-07-30, quoted to a US destination (FL 33462). Checked with the
+// cheapest catalog item ($4.49), the most expensive ($139.95), and a
+// mixed multi-item cart ($434.90) - all three returned identical rates,
+// confirming these are flat per-order rates, not weight/price-tiered
+// per product. Re-verify if Injured Gadgets changes their rate table.
 const SHIPPING_OPTIONS = [
   { id: "usps", price: 0.00 },
-  { id: "ups-ground", price: 7.00 },
-  { id: "fedex-ground", price: 7.00 },
-  { id: "ups-2day", price: 7.00 },
-  { id: "fedex-2day", price: 7.00 },
-  { id: "ups-nda-saver", price: 12.00 },
-  { id: "fedex-standard-ON", price: 12.00 },
+  { id: "ups-ground", price: 0.00 },
+  { id: "fedex-ground", price: 0.00 },
+  { id: "ups-2day", price: 0.00 },
+  { id: "fedex-2day", price: 0.00 },
+  { id: "ups-nda-saver", price: 0.00 },
+  { id: "fedex-standard-ON", price: 0.00 },
   { id: "ups-nda", price: 18.00 },
   { id: "fedex-priority-ON", price: 18.00 },
+  { id: "ups-overnight-sat", price: 23.00 },
+  { id: "fedex-overnight-sat", price: 25.00 },
   { id: "pickup", price: 0.00 },
   { id: "combine", price: 0.00 },
-  { id: "local", price: 30.00 }
+  { id: "local", price: 15.00 }
 ];
 
 const CATALOG = [

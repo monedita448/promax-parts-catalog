@@ -192,6 +192,10 @@
           '<div class="shipping-row">' +
             '<label>' + t(UI_STRINGS).shippingLabel + '</label>' +
             '<select>' + shippingOptionsHtml(SHIPPING_OPTIONS[0].id) + '</select>' +
+            '<label class="colombia-label">' + t(UI_STRINGS).colombiaShippingLabel + '</label>' +
+            '<input type="number" class="colombia-qty-input" min="0" step="1" inputmode="numeric" placeholder="' + t(UI_STRINGS).colombiaQtyPlaceholder + '">' +
+            '<p class="colombia-hint">' + t(UI_STRINGS).colombiaShippingHint + '</p>' +
+            '<div class="total-line colombia-cost-line"><span class="label">' + t(UI_STRINGS).colombiaShippingCostLabel + '</span><span class="value colombia-cost-value">' + money(0) + '</span></div>' +
             '<div class="total-line"><span class="label">' + t(UI_STRINGS).totalLabel + '</span><span class="value total-value">' + money(product.price) + '</span></div>' +
             '<div class="total-line cop-total-line"><span></span><span class="value total-cop-value">' + (copEquivalent(product.price) || '') + '</span></div>' +
           '</div>' +
@@ -199,14 +203,27 @@
 
     if (!outOfStock) {
       var select = card.querySelector('select');
+      var colombiaQtyInput = card.querySelector('.colombia-qty-input');
+      var colombiaCostValue = card.querySelector('.colombia-cost-value');
       var totalValue = card.querySelector('.total-value');
       var totalCopValue = card.querySelector('.total-cop-value');
-      select.addEventListener('change', function () {
+
+      function recomputeTotal() {
         var opt = SHIPPING_OPTIONS.filter(function (o) { return o.id === select.value; })[0];
-        var total = product.price + (opt ? opt.price : 0);
+        var domesticShipping = opt ? opt.price : 0;
+        var qty = parseInt(colombiaQtyInput.value, 10);
+        // $25 USD per every 6 items in the shipment, rounded up, so Pablo
+        // can see the full landed cost in Colombia (product + domestic
+        // shipping + Colombia freight) before adding his margin.
+        var colombiaShipping = (qty && qty > 0) ? Math.ceil(qty / 6) * 25 : 0;
+        colombiaCostValue.textContent = money(colombiaShipping);
+        var total = product.price + domesticShipping + colombiaShipping;
         totalValue.textContent = money(total);
         totalCopValue.textContent = copEquivalent(total) || '';
-      });
+      }
+
+      select.addEventListener('change', recomputeTotal);
+      colombiaQtyInput.addEventListener('input', recomputeTotal);
 
       var downloadBtn = card.querySelector('.download-btn');
       downloadBtn.addEventListener('click', function () {
