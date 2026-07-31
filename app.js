@@ -124,10 +124,10 @@
     return instant.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true });
   }
 
-  // Returns a warning string like "Most likely in Colombia by Thursday,
-  // August 6 if ordered before 7:00 PM (Eastern Time) today." or null for
-  // methods with no real transit estimate (pickup, combine).
-  function colombiaEtaMessage(opt) {
+  // Shared date math for both the domestic (US drop address) and Colombia
+  // ETA messages, so they always agree on the same ship date / cutoff.
+  // Returns null for methods with no real transit estimate (pickup, combine).
+  function computeEtaDates(opt) {
     if (!opt || (!opt.transitDays && !opt.fridayOnly)) return null;
 
     var easternNow = nowInEastern();
@@ -173,7 +173,6 @@
     var colombiaArrival = new Date(handoff.getTime());
     colombiaArrival.setDate(colombiaArrival.getDate() + COLOMBIA_TRANSIT_DAYS);
 
-    var dateStr = formatEtaDate(colombiaArrival);
     // Shown in the visitor's own local time, not Eastern - the cutoff
     // itself is still evaluated in Eastern time above (that's the real
     // business rule), this is just a friendlier display conversion.
@@ -190,12 +189,44 @@
       dayPhrase = lang === 'es' ? ('el ' + name) : ('on ' + name);
     }
 
+    return {
+      shipDate: shipDate,
+      domesticArrival: domesticArrival,
+      colombiaArrival: colombiaArrival,
+      cutoffStr: cutoffStr,
+      dayPhrase: dayPhrase,
+      fridayOnly: !!opt.fridayOnly
+    };
+  }
+
+  // Returns a warning string like "Most likely in Colombia by Thursday,
+  // August 6 if ordered before 7:00 PM (Eastern Time) today." or null for
+  // methods with no real transit estimate (pickup, combine).
+  function colombiaEtaMessage(opt) {
+    var d = computeEtaDates(opt);
+    if (!d) return null;
+    var dateStr = formatEtaDate(d.colombiaArrival);
+
     if (lang === 'es') {
-      return (opt.fridayOnly ? 'Este método solo se envía los viernes. ' : '') +
-        'Llegaría a Colombia aproximadamente el ' + dateStr + ' si se ordena antes de las ' + cutoffStr + ' ' + dayPhrase + '.';
+      return (d.fridayOnly ? 'Este método solo se envía los viernes. ' : '') +
+        'Llegaría a Colombia aproximadamente el ' + dateStr + ' si se ordena antes de las ' + d.cutoffStr + ' ' + d.dayPhrase + '.';
     }
-    return (opt.fridayOnly ? 'This method only ships on Fridays. ' : '') +
-      'Most likely in Colombia by ' + dateStr + ' if ordered before ' + cutoffStr + ' ' + dayPhrase + '.';
+    return (d.fridayOnly ? 'This method only ships on Fridays. ' : '') +
+      'Most likely in Colombia by ' + dateStr + ' if ordered before ' + d.cutoffStr + ' ' + d.dayPhrase + '.';
+  }
+
+  // Approximate arrival at the US drop address (Casa F / Tía Express)
+  // itself, before it's forwarded on to Colombia. Returns null for
+  // methods with no real transit estimate (pickup, combine).
+  function domesticEtaMessage(opt, destLabel) {
+    var d = computeEtaDates(opt);
+    if (!d) return null;
+    var dateStr = formatEtaDate(d.domesticArrival);
+
+    if (lang === 'es') {
+      return 'Llegaría a ' + destLabel + ' aproximadamente el ' + dateStr + ' si se ordena antes de las ' + d.cutoffStr + ' ' + d.dayPhrase + '.';
+    }
+    return 'Most likely at ' + destLabel + ' by ' + dateStr + ' if ordered before ' + d.cutoffStr + ' ' + d.dayPhrase + '.';
   }
 
   // Injured Gadgets' published shipping rates are NOT flat - each method
@@ -308,11 +339,14 @@
           'Pickup address: ' + details.destLabel
         ];
 
+    if (details.domesticEtaText) {
+      lines.push(details.domesticEtaText);
+    }
     if (details.colombiaShippingText) {
       lines.push((lang === 'es' ? 'Envío a Colombia: ' : 'Colombia shipping: ') + details.colombiaShippingText);
     }
     if (details.etaText) {
-      lines.push((lang === 'es' ? 'Llegada estimada: ' : 'Estimated arrival: ') + details.etaText);
+      lines.push((lang === 'es' ? 'Llegada estimada a Colombia: ' : 'Estimated arrival in Colombia: ') + details.etaText);
     }
     lines.push((lang === 'es' ? 'Total (costo real): ' : 'Total (actual cost): ') + details.totalText);
     lines.push((lang === 'es' ? 'Margen aplicado: ' : 'Margin applied: ') + Math.round(details.margin * 100) + '%');
@@ -503,16 +537,19 @@
       var orderBtn = card.querySelector('.order-btn');
       orderBtn.addEventListener('click', function () {
         var qty = parseInt(quantityInput.value, 10) || 1;
+        var dest = selectedDestination();
+        var opt = SHIPPING_OPTIONS.filter(function (o) { return o.id === select.value; })[0];
         var message = buildOrderMessage({
           product: product,
           modelLabel: modelLabel,
           shippingOptId: select.value,
-          destLabel: selectedDestination().label,
+          destLabel: dest.label,
           qty: qty,
           margin: selectedMargin(),
           suggestedPriceText: suggestedPriceValue.textContent,
           totalText: totalValue.textContent + (totalCopValue.textContent ? ' / ' + totalCopValue.textContent : ''),
           colombiaShippingText: colombiaCostValue.textContent !== money(0) ? colombiaCostValue.textContent : '',
+          domesticEtaText: domesticEtaMessage(opt, dest.label),
           etaText: etaLine.textContent
         });
         openOrderChat(message);
