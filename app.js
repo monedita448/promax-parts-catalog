@@ -382,6 +382,12 @@
             '<div class="total-line"><span class="label">' + t(UI_STRINGS).totalLabel + '</span><span class="value total-value">' + money(product.price) + '</span></div>' +
             '<div class="total-line cop-total-line"><span></span><span class="value total-cop-value">' + (copEquivalent(product.price) || '') + '</span></div>' +
             '<p class="colombia-eta-line"></p>' +
+            '<div class="suggested-price-box">' +
+              '<p class="suggested-price-label">' + t(UI_STRINGS).suggestedPriceLabel + '</p>' +
+              '<p class="suggested-price-value"></p>' +
+              '<p class="suggested-price-margin-note">' + t(UI_STRINGS).suggestedPriceMarginNote + '</p>' +
+              '<label class="mishap-checkbox-label"><input type="checkbox" class="mishap-checkbox"> ' + t(UI_STRINGS).mishapCheckboxLabel + '</label>' +
+            '</div>' +
           '</div>' +
           '<button class="download-btn" type="button">' + t(UI_STRINGS).downloadClientImage + '</button>');
 
@@ -392,6 +398,8 @@
       var totalValue = card.querySelector('.total-value');
       var totalCopValue = card.querySelector('.total-cop-value');
       var etaLine = card.querySelector('.colombia-eta-line');
+      var mishapCheckbox = card.querySelector('.mishap-checkbox');
+      var suggestedPriceValue = card.querySelector('.suggested-price-value');
 
       function selectedDestination() {
         var checked = card.querySelector('.destination-row input:checked');
@@ -415,6 +423,14 @@
         var etaMsg = colombiaEtaMessage(opt);
         etaLine.textContent = etaMsg || '';
         etaLine.style.display = etaMsg ? 'block' : 'none';
+
+        // Suggested selling price: full landed cost x 1.5 (50% margin),
+        // plus another 10% on top of that if the mishap checkbox is on.
+        // Shown in COP only - this is Pablo's price to quote, not a
+        // USD-facing number.
+        var suggestedUsdEquivalent = total * SUGGESTED_PRICE_MARGIN_MULTIPLIER *
+          (mishapCheckbox.checked ? SUGGESTED_PRICE_MISHAP_MULTIPLIER : 1);
+        suggestedPriceValue.textContent = copEquivalent(suggestedUsdEquivalent) || '';
       }
 
       // Changing the destination can change the fedex-priority-ON price
@@ -428,6 +444,7 @@
 
       select.addEventListener('change', recomputeTotal);
       colombiaQtyInput.addEventListener('input', recomputeTotal);
+      mishapCheckbox.addEventListener('change', recomputeTotal);
       Array.prototype.forEach.call(card.querySelectorAll('.destination-row input'), function (radio) {
         radio.addEventListener('change', onDestinationChange);
       });

@@ -464,6 +464,51 @@ main {
   line-height: 1.4;
 }
 
+.suggested-price-box {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.suggested-price-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 4px;
+}
+
+.suggested-price-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 4px;
+}
+
+.suggested-price-margin-note {
+  font-size: 10.5px;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.mishap-checkbox-label {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 10.5px !important;
+  color: var(--text-muted) !important;
+  font-weight: 400 !important;
+  line-height: 1.4;
+  margin-bottom: 0 !important;
+  cursor: pointer;
+}
+
+.mishap-checkbox-label input {
+  margin: 1px 0 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .colombia-cost-line {
   margin-bottom: 6px;
 }

@@ -41,6 +41,14 @@ const SHIPPING_OPTIONS = [
 const COLOMBIA_HANDOFF_DAYS = 1;
 const COLOMBIA_TRANSIT_DAYS = 3;
 
+// Suggested selling price = full landed cost (product + domestic
+// shipping + Colombia shipping) x 1.5 (a 50% margin). The optional
+// checkbox adds another 10% on top of that marked-up price, not on top
+// of the raw cost, as a buffer for exchange-rate swings and shipping
+// surprises.
+const SUGGESTED_PRICE_MARGIN_MULTIPLIER = 1.5;
+const SUGGESTED_PRICE_MISHAP_MULTIPLIER = 1.10;
+
 // States that qualify for FedEx Priority Overnight's cheaper $18 tier,
 // per Injured Gadgets' published policy. Every other state pays $25.
 const FEDEX_PRIORITY_LOW_TIER_STATES = ["FL", "GA", "AL", "SC", "NC", "TN"];
