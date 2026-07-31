@@ -162,10 +162,47 @@ body {
 header {
   background: var(--card);
   border-bottom: 1px solid var(--border);
-  padding: 18px 24px;
+  padding: 18px 24px 0;
   position: sticky;
   top: 62px;
   z-index: 10;
+}
+
+.section-nav {
+  max-width: 1100px;
+  margin: 12px auto 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.section-nav-item {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 999px 999px 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: var(--bg);
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.section-nav-item.active {
+  background: var(--card);
+  color: var(--accent);
+  border-color: var(--border);
+  border-bottom: 1px solid var(--card);
+  margin-bottom: -1px;
+}
+
+.section-intro {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 16px;
 }
 
 .header-inner {
