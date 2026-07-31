@@ -134,7 +134,7 @@ const CATALOG = [
       { id: "14-housing", category: "Back housing", name: { en: "Back housing", es: "Carcasa trasera" }, gradeKey: "genuine-oem-pull", inStock: true, price: 103.64, colors: ["Space Black", "Silver", "Gold", "Deep Purple"], img: "images/14pm-housing.jpg", note: { en: "", es: "" } },
       { id: "14-rearcam", category: "Camera", name: { en: "Rear camera module (main)", es: "Módulo de cámara trasera (principal)" }, gradeKey: "genuine", inStock: true, price: 47.95, colors: [], img: "images/14pm-rearcam.jpg", note: { en: "Ultra-wide (0.5x) module also available, $23.44.", es: "También disponible el módulo ultra gran angular (0.5x), $23.44." } },
       { id: "14-frontcam", category: "Camera", name: { en: "Front camera module", es: "Módulo de cámara frontal" }, gradeKey: "genuine", inStock: true, price: 18.30, colors: [], img: "images/14pm-frontcam.jpg", note: { en: "", es: "" } },
-      { id: "14-charging", category: "Charging port", name: { en: "Charging port flex", es: "Flex del puerto de carga" }, gradeKey: "premium", inStock: false, price: 19.95, colors: ["Deep Purple", "Gold", "Silver"], img: "images/14pm-charging.jpg", note: { en: "", es: "" } },
+      { id: "14-charging", category: "Charging port", name: { en: "Charging port flex", es: "Flex del puerto de carga" }, gradeKey: "premium", inStock: true, price: 19.95, colors: ["Deep Purple", "Gold", "Silver"], img: "images/14pm-charging.jpg", note: { en: "", es: "" } },
       { id: "14-loudspeaker", category: "Speaker", name: { en: "Loud speaker", es: "Altavoz" }, gradeKey: "premium", inStock: true, price: 6.19, colors: [], img: "images/14pm-loudspeaker.jpg", note: { en: "", es: "" } },
       { id: "14-earspeaker", category: "Speaker", name: { en: "Ear speaker", es: "Auricular" }, gradeKey: "genuine", inStock: true, price: 13.57, colors: [], img: "images/14pm-earspeaker.jpg", note: { en: "", es: "" } }
     ]
@@ -172,7 +172,7 @@ const CATALOG = [
       { id: "17-rearcam", category: "Camera", name: { en: "Rear camera module", es: "Módulo de cámara trasera" }, gradeKey: "genuine", inStock: true, price: 61.73, colors: [], img: "images/17pm-rearcam.jpg", note: { en: "Shared part number with 17 Pro.", es: "Mismo número de pieza que el 17 Pro." } },
       { id: "17-frontcam", category: "Camera", name: { en: "Front camera module", es: "Módulo de cámara frontal" }, gradeKey: "genuine", inStock: true, price: 53.95, colors: [], img: "images/17pm-frontcam.jpg", note: { en: "", es: "" } },
       { id: "17-charging", category: "Charging port", name: { en: "Charging port flex", es: "Flex del puerto de carga" }, gradeKey: "premium", inStock: true, price: 55.29, colors: ["Silver", "Cosmic Orange", "Deep Blue"], img: "images/17pm-charging.jpg", note: { en: "", es: "" } },
-      { id: "17-loudspeaker", category: "Speaker", name: { en: "Loud speaker", es: "Altavoz" }, gradeKey: "genuine", inStock: true, price: 11.32, colors: [], img: "images/17pm-loudspeaker.jpg", note: { en: "", es: "" } }
+      { id: "17-loudspeaker", category: "Speaker", name: { en: "Loud speaker", es: "Altavoz" }, gradeKey: "genuine", inStock: false, price: 11.32, colors: [], img: "images/17pm-loudspeaker.jpg", note: { en: "", es: "" } }
     ]
   }
 ];
