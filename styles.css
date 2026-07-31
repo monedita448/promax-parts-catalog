@@ -70,6 +70,24 @@
   margin: 10px 0 0;
 }
 
+.stop-warning-strip {
+  background: #c00000;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 61;
+}
+
+.stop-warning-icon { flex-shrink: 0; }
+
 .staff-warning-banner {
   background: #fdf6e3;
   color: #9a5b1f;
@@ -78,7 +96,7 @@
   white-space: nowrap;
   padding: 6px 0;
   position: sticky;
-  top: 0;
+  top: 34px;
   z-index: 60;
 }
 
@@ -110,7 +128,7 @@
   padding: 18px 20px;
   text-align: center;
   position: sticky;
-  top: 28px;
+  top: 62px;
   z-index: 50;
 }
 
@@ -146,7 +164,7 @@ header {
   border-bottom: 1px solid var(--border);
   padding: 18px 24px;
   position: sticky;
-  top: 0;
+  top: 62px;
   z-index: 10;
 }
 
