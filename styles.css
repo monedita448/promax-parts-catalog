@@ -177,6 +177,9 @@ header {
   flex-wrap: wrap;
 }
 
+.flags { display: flex; align-items: center; gap: 8px; font-size: 19px; flex-shrink: 0; }
+.flags span.arrow { color: var(--text-muted); font-size: 14px; }
+
 .brand {
   font-size: 17px;
   font-weight: 600;
