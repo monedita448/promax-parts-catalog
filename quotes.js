@@ -1,8 +1,9 @@
-// Funny-but-motivational Spanish "hustle" quotes, tacked onto the end of
-// the scrolling staff-only warning banner. Purely cosmetic - rotates to a
-// new quote each page load/refresh, cycling through the whole list in
-// order (via a localStorage index) before repeating, rather than
-// repeating the same one or picking randomly.
+// Funny-but-motivational Spanish "hustle" quotes shown in the scrolling
+// ticker - the actual staff-only warning now lives elsewhere (a stop-sign
+// icon near the top), so this ticker shows only the quote itself. Purely
+// cosmetic - rotates to a new quote each page load/refresh, cycling
+// through the whole list in order (via a localStorage index) before
+// repeating, rather than repeating the same one or picking randomly.
 (function () {
   var HUSTLE_QUOTES = [
     "El dinero no cae del cielo, cae de los que no duermen.",
@@ -41,6 +42,6 @@
 
   var textEls = document.querySelectorAll('.staff-warning-text');
   Array.prototype.forEach.call(textEls, function (el) {
-    el.textContent = el.textContent + '   ·   ' + quote;
+    el.textContent = quote;
   });
 })();
