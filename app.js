@@ -384,6 +384,7 @@
             '<p class="colombia-eta-line"></p>' +
             '<div class="suggested-price-box">' +
               '<p class="suggested-price-label">' + t(UI_STRINGS).suggestedPriceLabel + '</p>' +
+              '<p class="suggested-price-knives" aria-hidden="true">🔪🔪🔪🔪🔪🔪🔪</p>' +
               '<p class="suggested-price-value"></p>' +
               '<p class="suggested-price-margin-note">' + t(UI_STRINGS).suggestedPriceMarginNote + '</p>' +
               '<label class="mishap-checkbox-label"><input type="checkbox" class="mishap-checkbox"> ' + t(UI_STRINGS).mishapCheckboxLabel + '</label>' +
