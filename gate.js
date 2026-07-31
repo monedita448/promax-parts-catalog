@@ -21,6 +21,10 @@
     try { return localStorage.getItem(GATE_KEY) === 'yes'; } catch (e) { return false; }
   }
 
+  function clearUnlock() {
+    try { localStorage.removeItem(GATE_KEY); } catch (e) {}
+  }
+
   function unlock() {
     try { localStorage.setItem(GATE_KEY, 'yes'); } catch (e) {}
     var overlay = document.getElementById('gateOverlay');
@@ -43,6 +47,7 @@
   }
 
   function showGate() {
+    if (document.getElementById('gateOverlay')) return;
     document.documentElement.style.overflow = 'hidden';
     var overlay = document.createElement('div');
     overlay.id = 'gateOverlay';
@@ -86,4 +91,17 @@
       showGate();
     }
   }
+
+  // Re-lock the moment this tab is switched away from, backgrounded, or the
+  // screen is locked — so if a client picks up the phone, flips to this
+  // tab, and hands it back, Pablo (or the client) sees the password screen
+  // again instead of the unlocked catalog. Locking happens immediately on
+  // hide, not on return, so the gate is already up by the time anyone looks
+  // at the tab again.
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') {
+      clearUnlock();
+      showGate();
+    }
+  });
 })();
