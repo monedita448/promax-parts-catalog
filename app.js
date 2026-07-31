@@ -48,12 +48,194 @@
     return gradeKey.indexOf('genuine') === 0 ? 'genuine' : 'premium';
   }
 
-  function shippingOptionsHtml(selectedId) {
-    return SHIPPING_OPTIONS.map(function (opt) {
+  // --- Estimated arrival in Colombia -----------------------------------
+  // Domestic leg (per selected shipping method) + 1 day for the US drop
+  // address to hand off to the freight consolidator + 3 days for the
+  // international leg to Colombia. Cutoff times are in Eastern time
+  // (where Injured Gadgets ships from), read via Intl so it's correct
+  // regardless of the visitor's own timezone or DST.
+
+  function nowInEastern() {
+    var parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    }).formatToParts(new Date());
+    var map = {};
+    parts.forEach(function (p) { map[p.type] = p.value; });
+    return new Date(parseInt(map.year, 10), parseInt(map.month, 10) - 1, parseInt(map.day, 10), parseInt(map.hour, 10), parseInt(map.minute, 10));
+  }
+
+  function addBusinessDays(date, days) {
+    var result = new Date(date.getTime());
+    var remaining = days;
+    while (remaining > 0) {
+      result.setDate(result.getDate() + 1);
+      var dow = result.getDay();
+      if (dow !== 0 && dow !== 6) remaining--;
+    }
+    return result;
+  }
+
+  // Next date strictly after `date` that falls on `targetDow` (0=Sun..6=Sat).
+  function nextWeekdayAfter(date, targetDow) {
+    var result = new Date(date.getTime());
+    result.setDate(result.getDate() + 1);
+    while (result.getDay() !== targetDow) {
+      result.setDate(result.getDate() + 1);
+    }
+    return result;
+  }
+
+  function formatEtaDate(date) {
+    var locale = lang === 'es' ? 'es-CO' : 'en-US';
+    return date.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  // UTC offset (in minutes) of `timeZone` at the given instant - handles
+  // DST automatically since it's evaluated at that specific date.
+  function getUtcOffsetMinutes(timeZone, date) {
+    var parts = new Intl.DateTimeFormat('en-US', { timeZone: timeZone, timeZoneName: 'shortOffset' }).formatToParts(date);
+    var tzPart = parts.filter(function (p) { return p.type === 'timeZoneName'; })[0];
+    var match = tzPart ? /GMT([+-]\d+)/.exec(tzPart.value) : null;
+    var hours = match ? parseInt(match[1], 10) : -5;
+    return hours * 60;
+  }
+
+  // The real UTC instant for a given Eastern-time wall clock (year/month/
+  // day/hour), used only to convert the business-rule cutoff (always
+  // evaluated in Eastern time) into a real instant we can then re-display
+  // in the visitor's own local time.
+  function easternWallTimeToInstant(year, month, day, hourDecimal) {
+    var h = Math.floor(hourDecimal);
+    var m = Math.round((hourDecimal - h) * 60);
+    var approx = new Date(Date.UTC(year, month, day, h, m));
+    var offsetMin = getUtcOffsetMinutes('America/New_York', approx);
+    return new Date(Date.UTC(year, month, day, h, m) - offsetMin * 60000);
+  }
+
+  // Displays the cutoff time in the visitor's own local time (no timeZone
+  // passed, so it uses the browser's local zone) and with no timezone
+  // label - just a plain local clock time, so it can't be misread as
+  // Eastern time.
+  function formatLocalCutoffTime(cutoffHour, shipDate) {
+    var instant = easternWallTimeToInstant(shipDate.getFullYear(), shipDate.getMonth(), shipDate.getDate(), cutoffHour);
+    var locale = lang === 'es' ? 'es-CO' : 'en-US';
+    return instant.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true });
+  }
+
+  // Returns a warning string like "Most likely in Colombia by Thursday,
+  // August 6 if ordered before 7:00 PM (Eastern Time) today." or null for
+  // methods with no real transit estimate (pickup, combine).
+  function colombiaEtaMessage(opt) {
+    if (!opt || (!opt.transitDays && !opt.fridayOnly)) return null;
+
+    var easternNow = nowInEastern();
+    var dow = easternNow.getDay();
+    var hourDecimal = easternNow.getHours() + easternNow.getMinutes() / 60;
+    var isWeekday = dow >= 1 && dow <= 5;
+    var beforeCutoff = hourDecimal < opt.cutoffHour;
+
+    var shipDate;
+    var orderIsToday;
+
+    if (opt.fridayOnly) {
+      if (dow === 5 && beforeCutoff) {
+        shipDate = new Date(easternNow.getTime());
+        orderIsToday = true;
+      } else {
+        shipDate = nextWeekdayAfter(easternNow, 5);
+        orderIsToday = false;
+      }
+    } else if (isWeekday && beforeCutoff) {
+      shipDate = new Date(easternNow.getTime());
+      orderIsToday = true;
+    } else {
+      var tmp = new Date(easternNow.getTime());
+      tmp.setDate(tmp.getDate() + 1);
+      while (tmp.getDay() === 0 || tmp.getDay() === 6) tmp.setDate(tmp.getDate() + 1);
+      shipDate = tmp;
+      orderIsToday = false;
+    }
+
+    var domesticArrival;
+    if (opt.fridayOnly) {
+      // "Saturday Delivery" per policy - the day right after the Friday ship date.
+      domesticArrival = new Date(shipDate.getTime());
+      domesticArrival.setDate(domesticArrival.getDate() + 1);
+    } else {
+      domesticArrival = addBusinessDays(shipDate, opt.transitDays);
+    }
+
+    var handoff = new Date(domesticArrival.getTime());
+    handoff.setDate(handoff.getDate() + COLOMBIA_HANDOFF_DAYS);
+
+    var colombiaArrival = new Date(handoff.getTime());
+    colombiaArrival.setDate(colombiaArrival.getDate() + COLOMBIA_TRANSIT_DAYS);
+
+    var dateStr = formatEtaDate(colombiaArrival);
+    // Shown in the visitor's own local time, not Eastern - the cutoff
+    // itself is still evaluated in Eastern time above (that's the real
+    // business rule), this is just a friendlier display conversion.
+    var cutoffStr = formatLocalCutoffTime(opt.cutoffHour, shipDate);
+
+    var dayPhrase;
+    if (orderIsToday) {
+      dayPhrase = lang === 'es' ? 'hoy' : 'today';
+    } else {
+      var weekdayNames = lang === 'es'
+        ? ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+        : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      var name = weekdayNames[shipDate.getDay()];
+      dayPhrase = lang === 'es' ? ('el ' + name) : ('on ' + name);
+    }
+
+    if (lang === 'es') {
+      return (opt.fridayOnly ? 'Este método solo se envía los viernes. ' : '') +
+        'Llegaría a Colombia aproximadamente el ' + dateStr + ' si se ordena antes de las ' + cutoffStr + ' ' + dayPhrase + '.';
+    }
+    return (opt.fridayOnly ? 'This method only ships on Fridays. ' : '') +
+      'Most likely in Colombia by ' + dateStr + ' if ordered before ' + cutoffStr + ' ' + dayPhrase + '.';
+  }
+
+  // Injured Gadgets' published shipping rates are NOT flat - each method
+  // is free once the item's price clears that method's freeOver
+  // threshold, otherwise it costs the listed price. This mirrors their
+  // own shipping-policy page rather than a flat per-method number.
+  // fedex-priority-ON is also region-priced - destinationState decides
+  // whether it's the $18 or $25 tier.
+  function shippingCost(opt, productPrice, destinationState) {
+    if (!opt) return 0;
+    var basePrice = opt.regional
+      ? (FEDEX_PRIORITY_LOW_TIER_STATES.indexOf(destinationState) !== -1 ? opt.priceLowTier : opt.priceOtherStates)
+      : opt.price;
+    return productPrice >= opt.freeOver ? 0 : basePrice;
+  }
+
+  function shippingOptionsHtml(selectedId, productPrice, destinationState) {
+    // Spanish (Pablo's view) gets a trimmed list - one option per carrier
+    // plus a fast option - so it isn't cluttered with near-duplicate
+    // expedited tiers. English keeps the full list intact.
+    var visibleOptions = lang === 'es'
+      ? SHIPPING_OPTIONS.filter(function (opt) { return SHIPPING_OPTIONS_ES_VISIBLE.indexOf(opt.id) !== -1; })
+      : SHIPPING_OPTIONS;
+    return visibleOptions.map(function (opt) {
       var sel = opt.id === selectedId ? ' selected' : '';
       var label = t(SHIPPING_I18N[opt.id]);
-      var priceLabel = opt.price === 0 ? t(UI_STRINGS).free : money(opt.price);
+      var cost = shippingCost(opt, productPrice, destinationState);
+      var priceLabel = cost === 0 ? t(UI_STRINGS).free : money(cost);
       return '<option value="' + opt.id + '"' + sel + '>' + label + ' (' + priceLabel + ')</option>';
+    }).join('');
+  }
+
+  function destinationOptionsHtml(productId, selectedId) {
+    return SHIP_DESTINATIONS.map(function (dest) {
+      var checked = dest.id === selectedId ? ' checked' : '';
+      var inputId = 'dest-' + productId + '-' + dest.id;
+      return '<label class="destination-option" for="' + inputId + '">' +
+        '<input type="radio" id="' + inputId + '" name="dest-' + productId + '" value="' + dest.id + '"' + checked + '> ' +
+        dest.label +
+      '</label>';
     }).join('');
   }
 
@@ -190,14 +372,16 @@
           '<p class="price">' + money(product.price) + '</p>' +
           copHtml +
           '<div class="shipping-row">' +
+            '<div class="destination-row">' + destinationOptionsHtml(product.id, SHIP_DESTINATIONS[0].id) + '</div>' +
             '<label>' + t(UI_STRINGS).shippingLabel + '</label>' +
-            '<select>' + shippingOptionsHtml(SHIPPING_OPTIONS[0].id) + '</select>' +
+            '<select>' + shippingOptionsHtml(SHIPPING_OPTIONS[0].id, product.price, SHIP_DESTINATIONS[0].state) + '</select>' +
             '<label class="colombia-label">' + t(UI_STRINGS).colombiaShippingLabel + '</label>' +
             '<input type="number" class="colombia-qty-input" min="0" step="1" inputmode="numeric" placeholder="' + t(UI_STRINGS).colombiaQtyPlaceholder + '">' +
             '<p class="colombia-hint">' + t(UI_STRINGS).colombiaShippingHint + '</p>' +
             '<div class="total-line colombia-cost-line"><span class="label">' + t(UI_STRINGS).colombiaShippingCostLabel + '</span><span class="value colombia-cost-value">' + money(0) + '</span></div>' +
             '<div class="total-line"><span class="label">' + t(UI_STRINGS).totalLabel + '</span><span class="value total-value">' + money(product.price) + '</span></div>' +
             '<div class="total-line cop-total-line"><span></span><span class="value total-cop-value">' + (copEquivalent(product.price) || '') + '</span></div>' +
+            '<p class="colombia-eta-line"></p>' +
           '</div>' +
           '<button class="download-btn" type="button">' + t(UI_STRINGS).downloadClientImage + '</button>');
 
@@ -207,10 +391,17 @@
       var colombiaCostValue = card.querySelector('.colombia-cost-value');
       var totalValue = card.querySelector('.total-value');
       var totalCopValue = card.querySelector('.total-cop-value');
+      var etaLine = card.querySelector('.colombia-eta-line');
+
+      function selectedDestination() {
+        var checked = card.querySelector('.destination-row input:checked');
+        var destId = checked ? checked.value : SHIP_DESTINATIONS[0].id;
+        return SHIP_DESTINATIONS.filter(function (d) { return d.id === destId; })[0] || SHIP_DESTINATIONS[0];
+      }
 
       function recomputeTotal() {
         var opt = SHIPPING_OPTIONS.filter(function (o) { return o.id === select.value; })[0];
-        var domesticShipping = opt ? opt.price : 0;
+        var domesticShipping = shippingCost(opt, product.price, selectedDestination().state);
         var qty = parseInt(colombiaQtyInput.value, 10);
         // $25 USD per every 6 items in the shipment, rounded up, so Pablo
         // can see the full landed cost in Colombia (product + domestic
@@ -220,15 +411,35 @@
         var total = product.price + domesticShipping + colombiaShipping;
         totalValue.textContent = money(total);
         totalCopValue.textContent = copEquivalent(total) || '';
+
+        var etaMsg = colombiaEtaMessage(opt);
+        etaLine.textContent = etaMsg || '';
+        etaLine.style.display = etaMsg ? 'block' : 'none';
+      }
+
+      // Changing the destination can change the fedex-priority-ON price
+      // tier shown in the dropdown, so rebuild its option labels rather
+      // than just recomputing the total.
+      function onDestinationChange() {
+        var currentSelection = select.value;
+        select.innerHTML = shippingOptionsHtml(currentSelection, product.price, selectedDestination().state);
+        recomputeTotal();
       }
 
       select.addEventListener('change', recomputeTotal);
       colombiaQtyInput.addEventListener('input', recomputeTotal);
+      Array.prototype.forEach.call(card.querySelectorAll('.destination-row input'), function (radio) {
+        radio.addEventListener('change', onDestinationChange);
+      });
 
       var downloadBtn = card.querySelector('.download-btn');
       downloadBtn.addEventListener('click', function () {
         downloadProductImage(product, modelLabel);
       });
+
+      // Populate the ETA line immediately, without waiting for the first
+      // change event.
+      recomputeTotal();
     }
 
     return card;

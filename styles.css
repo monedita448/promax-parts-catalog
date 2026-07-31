@@ -397,6 +397,28 @@ main {
   margin-bottom: 4px;
 }
 
+.destination-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.destination-option {
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px !important;
+  color: var(--text) !important;
+  font-weight: 600;
+  margin-bottom: 0 !important;
+  cursor: pointer;
+}
+
+.destination-option input {
+  margin: 0;
+  cursor: pointer;
+}
+
 .shipping-row select {
   width: 100%;
   padding: 6px 8px;
@@ -428,6 +450,17 @@ main {
   font-size: 10.5px;
   color: var(--text-muted);
   margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.colombia-eta-line {
+  font-size: 10.5px;
+  color: #9a5b1f;
+  background: #fdf6e3;
+  border: 1px solid #eddca6;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 8px 0 0;
   line-height: 1.4;
 }
 

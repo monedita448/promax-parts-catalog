@@ -3,29 +3,62 @@
 // image filenames are placeholders; see image-manifest.json for the source links to fetch.
 // gradeKey/category/colors are lookup keys translated via i18n.js. name/note have EN+ES pairs.
 
-// Verified directly against the live Injured Gadgets cart shipping
-// estimator (checkout/cart, "Estimate Shipping and Tax" widget) on
-// 2026-07-30, quoted to a US destination (FL 33462). Checked with the
-// cheapest catalog item ($4.49), the most expensive ($139.95), and a
-// mixed multi-item cart ($434.90) - all three returned identical rates,
-// confirming these are flat per-order rates, not weight/price-tiered
-// per product. Re-verify if Injured Gadgets changes their rate table.
+// Sourced from Injured Gadgets' own published shipping policy page
+// (injuredgadgets.com/shipping-policy), captured 2026-07-31. Each method
+// is genuinely NOT a flat rate - it's "pay this unless the item's price
+// is over the freeOver threshold, then it's free." freeOver values are
+// the site's own published free-shipping tiers. See app.js for how
+// freeOver is applied per product price.
+// Priority Overnight is priced by destination region: $18 if shipping to
+// FL/GA/AL/SC/NC/TN, $25 for every other state. fedex-priority-ON below
+// has no single `price` - it's computed per selected destination (see
+// FEDEX_PRIORITY_LOW_TIER_STATES + SHIP_DESTINATIONS, applied in app.js).
+// Re-verify against the policy page if Injured Gadgets updates its rates.
+// transitDays = typical domestic business days from ship-out to arrival
+// at the US drop address (a representative single number, not the full
+// published range). cutoffHour = the method's weekday order cutoff, in
+// Eastern time, as a decimal (19.5 = 7:30 PM). fridayOnly marks the one
+// method that only ships on Fridays. pickup/combine have neither field,
+// since they aren't a real shipment with a transit estimate.
 const SHIPPING_OPTIONS = [
-  { id: "usps", price: 0.00 },
-  { id: "ups-ground", price: 0.00 },
-  { id: "fedex-ground", price: 0.00 },
-  { id: "ups-2day", price: 0.00 },
-  { id: "fedex-2day", price: 0.00 },
-  { id: "ups-nda-saver", price: 0.00 },
-  { id: "fedex-standard-ON", price: 0.00 },
-  { id: "ups-nda", price: 18.00 },
-  { id: "fedex-priority-ON", price: 18.00 },
-  { id: "ups-overnight-sat", price: 23.00 },
-  { id: "fedex-overnight-sat", price: 25.00 },
-  { id: "pickup", price: 0.00 },
-  { id: "combine", price: 0.00 },
-  { id: "local", price: 15.00 }
+  { id: "usps", price: 6.00, freeOver: 100, transitDays: 5, cutoffHour: 15 },
+  { id: "ups-ground", price: 7.00, freeOver: 350, transitDays: 3, cutoffHour: 19 },
+  { id: "fedex-ground", price: 7.00, freeOver: 350, transitDays: 3, cutoffHour: 18 },
+  { id: "ups-2day", price: 7.00, freeOver: 350, transitDays: 2, cutoffHour: 19 },
+  { id: "fedex-2day", price: 7.00, freeOver: 350, transitDays: 2, cutoffHour: 19.5 },
+  { id: "ups-nda-saver", price: 12.00, freeOver: 500, transitDays: 1, cutoffHour: 19 },
+  { id: "fedex-standard-ON", price: 12.00, freeOver: 500, transitDays: 1, cutoffHour: 19.5 },
+  { id: "ups-nda", price: 23.00, freeOver: 1000, transitDays: 1, cutoffHour: 19 },
+  { id: "fedex-priority-ON", regional: true, priceLowTier: 18.00, priceOtherStates: 25.00, freeOver: 1000, transitDays: 1, cutoffHour: 19.5 },
+  { id: "fedex-saturday-ON", price: 30.00, freeOver: 1750, fridayOnly: true, cutoffHour: 19.5 },
+  { id: "pickup", price: 0.00, freeOver: 0 },
+  { id: "combine", price: 0.00, freeOver: 0 }
 ];
+
+// The Colombia leg of the trip, per Pablo: the US drop address hands the
+// package to the freight consolidator the day after domestic arrival,
+// and the international leg usually takes 3 more days from there.
+const COLOMBIA_HANDOFF_DAYS = 1;
+const COLOMBIA_TRANSIT_DAYS = 3;
+
+// States that qualify for FedEx Priority Overnight's cheaper $18 tier,
+// per Injured Gadgets' published policy. Every other state pays $25.
+const FEDEX_PRIORITY_LOW_TIER_STATES = ["FL", "GA", "AL", "SC", "NC", "TN"];
+
+// The two US drop addresses this catalog quotes shipping to. Pablo picks
+// one above the shipping dropdown; it determines which Priority
+// Overnight tier applies (both are FL right now, so no visible price
+// difference between them yet, but this is ready for a non-FL address).
+const SHIP_DESTINATIONS = [
+  { id: "casa-f", label: "Casa F", address: "Lantana, FL 33462", state: "FL" },
+  { id: "tia-express", label: "Tía Express", address: "Coral Springs, FL 33065", state: "FL" }
+];
+
+// The English dropdown shows all options above. The Spanish dropdown
+// (Pablo's view) is intentionally trimmed to one option per carrier plus
+// a fast option, so it isn't cluttered with near-duplicate expedited
+// tiers he doesn't need day-to-day.
+const SHIPPING_OPTIONS_ES_VISIBLE = ["usps", "ups-ground", "fedex-ground", "ups-nda"];
 
 const CATALOG = [
   {

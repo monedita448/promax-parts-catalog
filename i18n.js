@@ -82,19 +82,17 @@ const COLOR_I18N = {
 
 const SHIPPING_I18N = {
   "usps": { en: "USPS (1-7 business days)", es: "USPS (1-7 días hábiles)" },
-  "ups-ground": { en: "UPS Ground", es: "UPS terrestre" },
-  "fedex-ground": { en: "FedEx Ground", es: "FedEx terrestre" },
+  "ups-ground": { en: "UPS Ground", es: "UPS terrestre (1-5 días hábiles)" },
+  "fedex-ground": { en: "FedEx Ground", es: "FedEx terrestre (1-5 días hábiles)" },
   "ups-2day": { en: "UPS 2 Business Days", es: "UPS 2 días hábiles" },
   "fedex-2day": { en: "FedEx 2 Business Days", es: "FedEx 2 días hábiles" },
   "ups-nda-saver": { en: "UPS Next Day Air Saver", es: "UPS Next Day Air Saver" },
   "fedex-standard-ON": { en: "FedEx Standard Overnight", es: "FedEx Standard Overnight" },
-  "ups-nda": { en: "UPS Next Day Air", es: "UPS Next Day Air" },
+  "ups-nda": { en: "UPS Next Day Air", es: "UPS Next Day Air (Día Siguiente)" },
   "fedex-priority-ON": { en: "FedEx Priority Overnight", es: "FedEx Priority Overnight" },
-  "ups-overnight-sat": { en: "UPS Overnight Saturday Delivery", es: "UPS Overnight Saturday Delivery" },
-  "fedex-overnight-sat": { en: "FedEx Overnight Saturday Delivery", es: "FedEx Overnight Saturday Delivery" },
+  "fedex-saturday-ON": { en: "FedEx Saturday Priority Overnight (Friday shipments only)", es: "FedEx Saturday Priority Overnight (solo envíos los viernes)" },
   "pickup": { en: "In-store pickup", es: "Recogida en tienda" },
-  "combine": { en: "Combine with prior order", es: "Combinar con pedido anterior" },
-  "local": { en: "Local delivery", es: "Entrega local" }
+  "combine": { en: "Combine with prior order", es: "Combinar con pedido anterior" }
 };
 
 function getLang() {
