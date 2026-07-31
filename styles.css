@@ -283,6 +283,24 @@ header {
 
 .hide-prices-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+.download-sheet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--card);
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+  margin-bottom: 16px;
+}
+
+.download-sheet-btn:hover { background: var(--accent); color: #fff; }
+
 .price-hidden-note {
   display: none;
   font-size: 13px;
