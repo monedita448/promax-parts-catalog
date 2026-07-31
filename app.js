@@ -34,6 +34,18 @@
     return dict[lang] || dict.en;
   }
 
+  // Delays calling fn until wait ms after the last call - used so typing
+  // in the search box doesn't re-render the whole grid on every single
+  // keystroke, which is noticeably laggy on cheap/older phones.
+  function debounce(fn, wait) {
+    var timer = null;
+    return function () {
+      var args = arguments;
+      clearTimeout(timer);
+      timer = setTimeout(function () { fn.apply(null, args); }, wait);
+    };
+  }
+
   function money(n) {
     return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USD';
   }
@@ -448,7 +460,7 @@
     var card = document.createElement('div');
     card.className = 'card' + (outOfStock ? ' is-out-of-stock' : '');
     card.innerHTML =
-      '<img src="' + product.img + '" alt="' + name + '" loading="lazy" onerror="this.style.opacity=0.25">' +
+      '<img src="' + product.img + '" alt="' + name + '" loading="lazy" decoding="async" onerror="this.style.opacity=0.25">' +
       '<div class="badge-row">' +
         '<span class="badge ' + badgeClass + '">' + gradeLabel + '</span>' +
         stockBadgeHtml +
@@ -701,7 +713,7 @@
     renderNotes();
   }
 
-  searchEl.addEventListener('input', renderGrid);
+  searchEl.addEventListener('input', debounce(renderGrid, 150));
 
   langBtn.addEventListener('click', function () {
     lang = lang === 'en' ? 'es' : 'en';

@@ -676,7 +676,34 @@ main {
   text-align: center;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .header-inner { flex-direction: column; align-items: stretch; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .nav-links { justify-content: space-between; }
+
+  /* One card per row below this width - a 2-column layout leaves too
+     little room for the shipping dropdown, margin pills, and checkboxes
+     to stay comfortably tappable. */
+  .grid { grid-template-columns: 1fr; }
+
+  /* iOS Safari auto-zooms the page when a text/number input's font-size
+     is under 16px and it gets focused - bumping these to 16px on mobile
+     only (desktop keeps the more compact 12.5px) avoids that jarring
+     zoom-in/out every time Pablo taps a field. */
+  .search-box input,
+  .colombia-qty-input,
+  .quantity-input {
+    font-size: 16px;
+  }
+
+  /* Slightly bigger tap targets throughout, so nothing needs a precise
+     fingertip tap on a small phone screen. */
+  .tab-btn { padding: 9px 16px; }
+  .order-btn { padding: 13px 10px; font-size: 14px; }
+  .margin-option-inner { padding: 9px 2px 8px; }
+  .mishap-checkbox-label input,
+  .pirobo-checkbox-label input,
+  .destination-option input {
+    width: 18px;
+    height: 18px;
+  }
 }
