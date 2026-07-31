@@ -1,7 +1,11 @@
 // Product data for the "Sistemas de incendio" sample section - automatic
 // fire suppression products, sourced only from Walmart.com (verified live
-// listings, captured 2026-07-31). Real names, prices, and photos per
-// product; walmartUrl is the exact live product page. This file is
+// listings, re-checked 2026-07-31). Real names, prices, and photos per
+// product; walmartUrl is the exact live product page. Sale/clearance items
+// are deliberately excluded, and the lineup is focused on aerosol automatic
+// suppression units for electrical cabinets/panels (the "AFSU" style, e.g.
+// the real Stat-X(R) brand - not itself found for sale on Walmart.com, so
+// this uses the closest genuinely-listed equivalents instead). This file is
 // self-contained (doesn't share constants with data.js) since it's only
 // ever loaded on incendio.html, never alongside the phone catalog.
 
@@ -37,19 +41,19 @@ const FUEGO_PRODUCTS = [
     walmartUrl: "https://www.walmart.com/ip/ifundom-Self-Activating-Automatic-Fire-Extinguisher-Kit-for-Cars-Rvs-Boats-in-Rose-Plated-Gold-Finish/20676917939"
   },
   {
-    id: "fuego-sorrowso",
-    brand: "Sorrowso",
+    id: "fuego-btlige",
+    brand: "BTLIGE",
     name: {
-      en: "Automatic fire sprinkler head, K80 quick response",
-      es: "Rociador automático contra incendios, respuesta rápida K80"
+      en: "170°C automatic aerosol fire suppression unit, DIN rail mount",
+      es: "Unidad automática de extinción por aerosol 170°C, montaje en riel DIN"
     },
     spec: {
-      en: "155°F (68°C) standard response · 1/2\" NPT thread · for plumbed automatic sprinkler systems",
-      es: "Respuesta estándar a 155°F (68°C) · rosca NPT 1/2\" · para sistemas de rociadores automáticos con tubería"
+      en: "Dual-nozzle heat aerosol, activates at 170°C · DIN rail + adhesive mount · 10-year service life, -50°C to 90°C · built for electrical cabinets, meter boxes and EV charging piles",
+      es: "Aerosol térmico de doble boquilla, activa a 170°C · montaje en riel DIN o adhesivo · vida útil de 10 años, -50°C a 90°C · diseñada para gabinetes eléctricos, cajas de medidor y postes de carga EV"
     },
-    price: 14.31,
-    img: "images/fuego-sorrowso-sprinkler.jpg",
-    walmartUrl: "https://www.walmart.com/ip/Sorrowso-1-57-x2-76-155-F-68-C-Standard-Automatic-Fire-Sprinkler-K80-Quick-Response-for-Automatic-Fire-Sprinkler-System/1625942285"
+    price: 9.68,
+    img: "images/fuego-btlige-panel.jpg",
+    walmartUrl: "https://www.walmart.com/ip/170-C-Automatic-Fire-Extinguishing-Device-20g-30g-Heat-Aerosol-for-Electrical-Cabinets-Dual-Nozzle-10-Year-Life/20414873814"
   },
   {
     id: "fuego-yoopt",
