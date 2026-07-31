@@ -616,19 +616,45 @@ main {
 .total-line .label { color: var(--text-muted); }
 .total-line .value { font-weight: 400; font-size: 12.5px; color: var(--text-muted); }
 
-.download-btn {
+.quantity-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+  margin: 10px 0 4px;
+}
+
+.quantity-input {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+  background: var(--bg);
+}
+
+.suggested-shipping-note {
+  font-size: 10.5px;
+  color: #1f6b41;
+  background: var(--genuine-bg);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 0 8px;
+}
+
+.order-btn {
   width: 100%;
   margin-top: 10px;
-  padding: 8px 10px;
+  padding: 10px 10px;
   border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  font-size: 12px;
+  border: 1px solid #1f6b41;
+  background: #e4f3ea;
+  color: #1f6b41;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.download-btn:hover { border-color: var(--accent); color: var(--accent); }
+.order-btn:hover { background: #d5ecdf; }
 
 .notes-box {
   background: #fdf6e3;

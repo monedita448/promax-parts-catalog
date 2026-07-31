@@ -265,77 +265,72 @@
     });
   }
 
-  function sanitizeFilename(str) {
-    return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '') || 'product';
+  // Best-effort link to injuredgadgets.com's own search results for this
+  // part - there's no per-product URL stored in the catalog data, so this
+  // can't land Pablo on the exact listing, only a relevant search. Uses
+  // the site's standard Shopify-style search query.
+  function injuredGadgetsSearchUrl(product, modelLabel) {
+    var query = modelLabel + ' ' + t(product.name);
+    return 'https://www.injuredgadgets.com/search?q=' + encodeURIComponent(query);
   }
 
-  function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
-    var words = text.split(' ');
-    var line = '';
-    var lines = [];
-    words.forEach(function (word) {
-      var testLine = line + word + ' ';
-      if (ctx.measureText(testLine).width > maxWidth && line !== '') {
-        lines.push(line.trim());
-        line = word + ' ';
-      } else {
-        line = testLine;
+  // Recommends a shipping method given the selected margin, balancing
+  // speed against cost: at higher margin tiers (75%/100%) there's enough
+  // cushion to suggest the fastest option regardless of a modest shipping
+  // cost; at lower tiers (50%/60%) it suggests the cheapest option so the
+  // shipping cost doesn't eat into the thinner margin. This is shown only
+  // as a suggestion under the dropdown - it never changes the selection.
+  function suggestBestShippingId(visibleOptions, productPrice, destinationState, margin) {
+    var candidates = visibleOptions
+      .filter(function (o) { return typeof o.transitDays === 'number'; })
+      .map(function (o) {
+        return { id: o.id, cost: shippingCost(o, productPrice, destinationState), transitDays: o.transitDays };
+      });
+    if (!candidates.length) return null;
+    candidates.sort(function (a, b) {
+      if (margin >= 0.75) {
+        return (a.transitDays - b.transitDays) || (a.cost - b.cost);
       }
+      return (a.cost - b.cost) || (a.transitDays - b.transitDays);
     });
-    lines.push(line.trim());
-    lines.forEach(function (l, i) {
-      ctx.fillText(l, x, y + i * lineHeight);
-    });
-    return lines.length;
+    return candidates[0].id;
   }
 
-  // Builds a plain, client-safe image: just the product photo and its
-  // name, no price, no grade, no shipping, nothing that identifies where
-  // it's sourced from. Meant for Pablo to send straight to a customer.
-  function downloadProductImage(product, modelLabel) {
-    var displayName = modelLabel + ' — ' + t(product.name);
-    var img = new Image();
-    img.onload = function () {
-      var W = 800, H = 860;
-      var boxSize = 680;
-      var boxX = (W - boxSize) / 2;
-      var boxY = 40;
+  // Builds the plain-text order message sent to Pablo's own WhatsApp
+  // number: what to order, how many, which shipping method, the margin
+  // and suggested price he's quoting, and a link to search for the part
+  // on injuredgadgets.com to actually place the order.
+  function buildOrderMessage(product, modelLabel, shippingOptId, destLabel, qty, margin, suggestedPriceText) {
+    var shippingLabel = t(SHIPPING_I18N[shippingOptId] || { en: shippingOptId, es: shippingOptId });
+    var lines = lang === 'es'
+      ? [
+          modelLabel + ' — ' + t(product.name),
+          'Cantidad: ' + qty,
+          'Envío: ' + shippingLabel,
+          'Dirección de recogida: ' + destLabel,
+          'Margen aplicado: ' + Math.round(margin * 100) + '%',
+          'Precio sugerido al cliente: ' + suggestedPriceText,
+          'Buscar en Injured Gadgets: ' + injuredGadgetsSearchUrl(product, modelLabel)
+        ]
+      : [
+          modelLabel + ' — ' + t(product.name),
+          'Quantity: ' + qty,
+          'Shipping: ' + shippingLabel,
+          'Pickup address: ' + destLabel,
+          'Margin applied: ' + Math.round(margin * 100) + '%',
+          'Suggested price to client: ' + suggestedPriceText,
+          'Search on Injured Gadgets: ' + injuredGadgetsSearchUrl(product, modelLabel)
+        ];
+    return lines.join('\n');
+  }
 
-      var canvas = document.createElement('canvas');
-      canvas.width = W;
-      canvas.height = H;
-      var ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, W, H);
-
-      var scale = Math.min(boxSize / img.width, boxSize / img.height);
-      var drawW = img.width * scale;
-      var drawH = img.height * scale;
-      var drawX = boxX + (boxSize - drawW) / 2;
-      var drawY = boxY + (boxSize - drawH) / 2;
-      ctx.drawImage(img, drawX, drawY, drawW, drawH);
-
-      ctx.fillStyle = '#1c1c1a';
-      ctx.font = '600 30px -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
-      ctx.textAlign = 'center';
-      wrapCanvasText(ctx, displayName, W / 2, boxY + boxSize + 60, W - 80, 38);
-
-      canvas.toBlob(function (blob) {
-        if (!blob) return;
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = sanitizeFilename(displayName) + '.png';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
-      }, 'image/png');
-    };
-    img.onerror = function () {
-      alert(lang === 'es' ? 'No se pudo generar la imagen.' : 'Could not generate the image.');
-    };
-    img.src = product.img;
+  function openOrderChat(message) {
+    if (!ORDER_WHATSAPP_NUMBER) {
+      alert(t(UI_STRINGS).orderButtonMissingNumber);
+      return;
+    }
+    var url = 'https://wa.me/' + ORDER_WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
+    window.open(url, '_blank');
   }
 
   function buildCard(product, modelLabel) {
@@ -375,6 +370,7 @@
             '<div class="destination-row">' + destinationOptionsHtml(product.id, SHIP_DESTINATIONS[0].id) + '</div>' +
             '<label>' + t(UI_STRINGS).shippingLabel + '</label>' +
             '<select>' + shippingOptionsHtml(SHIPPING_OPTIONS[0].id, product.price, SHIP_DESTINATIONS[0].state) + '</select>' +
+            '<p class="suggested-shipping-note"></p>' +
             '<label class="colombia-label">' + t(UI_STRINGS).colombiaShippingLabel + '</label>' +
             '<input type="number" class="colombia-qty-input" min="0" step="1" inputmode="numeric" placeholder="' + t(UI_STRINGS).colombiaQtyPlaceholder + '">' +
             '<p class="colombia-hint">' + t(UI_STRINGS).colombiaShippingHint + '</p>' +
@@ -403,8 +399,10 @@
               '<p class="pirobo-warning">⚠ ' + t(UI_STRINGS).piroboWarning + '</p>' +
               '<p class="pirobo-breakdown" style="display:none;"></p>' +
             '</div>' +
+            '<label class="quantity-label">' + t(UI_STRINGS).quantityLabel + '</label>' +
+            '<input type="number" class="quantity-input" min="1" step="1" inputmode="numeric" value="1">' +
           '</div>' +
-          '<button class="download-btn" type="button">' + t(UI_STRINGS).downloadClientImage + '</button>');
+          '<button class="order-btn" type="button">' + t(UI_STRINGS).orderButtonLabel + '</button>');
 
     if (!outOfStock) {
       var select = card.querySelector('select');
@@ -418,6 +416,8 @@
       var piroboBreakdown = card.querySelector('.pirobo-breakdown');
       var marginNoteEl = card.querySelector('.suggested-price-margin-note');
       var suggestedPriceValue = card.querySelector('.suggested-price-value');
+      var suggestedShippingNote = card.querySelector('.suggested-shipping-note');
+      var quantityInput = card.querySelector('.quantity-input');
 
       function selectedDestination() {
         var checked = card.querySelector('.destination-row input:checked');
@@ -467,6 +467,20 @@
         } else {
           piroboBreakdown.style.display = 'none';
         }
+
+        // Suggested shipping method, balancing speed against margin - only
+        // ever shown as a hint under the dropdown, never auto-selected.
+        var visibleOptions = lang === 'es'
+          ? SHIPPING_OPTIONS.filter(function (o) { return SHIPPING_OPTIONS_ES_VISIBLE.indexOf(o.id) !== -1; })
+          : SHIPPING_OPTIONS;
+        var suggestedId = suggestBestShippingId(visibleOptions, product.price, selectedDestination().state, margin);
+        if (suggestedId) {
+          var suggestedLabel = t(SHIPPING_I18N[suggestedId]);
+          suggestedShippingNote.textContent = t(UI_STRINGS).suggestedShippingTemplate.replace('{label}', suggestedLabel);
+          suggestedShippingNote.style.display = 'block';
+        } else {
+          suggestedShippingNote.style.display = 'none';
+        }
       }
 
       // Changing the destination can change the fedex-priority-ON price
@@ -489,9 +503,12 @@
         radio.addEventListener('change', onDestinationChange);
       });
 
-      var downloadBtn = card.querySelector('.download-btn');
-      downloadBtn.addEventListener('click', function () {
-        downloadProductImage(product, modelLabel);
+      var orderBtn = card.querySelector('.order-btn');
+      orderBtn.addEventListener('click', function () {
+        var qty = parseInt(quantityInput.value, 10) || 1;
+        var destLabel = selectedDestination().label;
+        var message = buildOrderMessage(product, modelLabel, select.value, destLabel, qty, selectedMargin(), suggestedPriceValue.textContent);
+        openOrderChat(message);
       });
 
       // Populate the ETA line immediately, without waiting for the first

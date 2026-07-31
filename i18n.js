@@ -29,7 +29,11 @@ const UI_STRINGS = {
     downloadClientImage: "Download image for client",
     hidePrices: "Hide prices",
     showPrices: "Show prices",
-    pricesHiddenNote: "Pricing hidden"
+    pricesHiddenNote: "Pricing hidden",
+    quantityLabel: "Quantity to order",
+    orderButtonLabel: "Order via WhatsApp",
+    orderButtonMissingNumber: "No WhatsApp number is set up for ordering yet.",
+    suggestedShippingTemplate: "Suggested option: {label}"
   },
   es: {
     brand: "Catálogo de piezas Pro Max",
@@ -59,7 +63,11 @@ const UI_STRINGS = {
     downloadClientImage: "Descargar imagen para cliente",
     hidePrices: "Ocultar precios",
     showPrices: "Mostrar precios",
-    pricesHiddenNote: "Precio oculto"
+    pricesHiddenNote: "Precio oculto",
+    quantityLabel: "Cantidad a pedir",
+    orderButtonLabel: "Pedir por WhatsApp",
+    orderButtonMissingNumber: "Todavía no hay un número de WhatsApp configurado para pedidos.",
+    suggestedShippingTemplate: "Opción sugerida: {label}"
   }
 };
 
