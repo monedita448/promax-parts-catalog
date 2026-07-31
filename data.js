@@ -42,12 +42,25 @@ const COLOMBIA_HANDOFF_DAYS = 1;
 const COLOMBIA_TRANSIT_DAYS = 3;
 
 // Suggested selling price = full landed cost (product + domestic
-// shipping + Colombia shipping) x 1.5 (a 50% margin). The optional
-// checkbox adds another 10% on top of that marked-up price, not on top
-// of the raw cost, as a buffer for exchange-rate swings and shipping
-// surprises.
-const SUGGESTED_PRICE_MARGIN_MULTIPLIER = 1.5;
+// shipping + Colombia shipping) x a selectable margin. Pablo picks one
+// of these four tiers per product (50% is the default); each is a
+// fraction added on top of 1x cost, e.g. 0.5 = cost x 1.5.
+const SUGGESTED_PRICE_MARGIN_OPTIONS = [0.5, 0.6, 0.75, 1.0];
+const SUGGESTED_PRICE_DEFAULT_MARGIN = 0.5;
+
+// Optional checkbox: adds another 10% on top of the marked-up price, not
+// on top of the raw cost, as a buffer for exchange-rate swings and
+// shipping surprises.
 const SUGGESTED_PRICE_MISHAP_MULTIPLIER = 1.10;
+
+// Optional "pirobo" surcharge checkbox: conceptually a 2.5% markup on
+// the product cost, a 2.5% markup on domestic shipping, and a 2.5%
+// markup on Colombia shipping, summed - which is mathematically the
+// same as a single 2.5% markup on their total - followed by a further
+// 2.5% for "processing and handling" on top of that. Two compounding
+// 2.5% passes on the already-computed suggested price. Meant to be used
+// only when a client has been disrespectful, never as a default add-on.
+const PIROBO_STEP_MULTIPLIER = 1.025;
 
 // States that qualify for FedEx Priority Overnight's cheaper $18 tier,
 // per Injured Gadgets' published policy. Every other state pays $25.

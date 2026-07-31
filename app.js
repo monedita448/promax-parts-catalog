@@ -384,10 +384,24 @@
             '<p class="colombia-eta-line"></p>' +
             '<div class="suggested-price-box">' +
               '<p class="suggested-price-label">' + t(UI_STRINGS).suggestedPriceLabel + '</p>' +
-              '<p class="suggested-price-knives" aria-hidden="true">🔪🔪🔪🔪🔪🔪🔪</p>' +
+              '<p class="margin-options-label">' + t(UI_STRINGS).marginOptionsLabel + '</p>' +
+              '<div class="margin-options">' +
+                SUGGESTED_PRICE_MARGIN_OPTIONS.map(function (m) {
+                  var pct = Math.round(m * 100);
+                  var knives = new Array(SUGGESTED_PRICE_MARGIN_OPTIONS.indexOf(m) + 2).join('🔪');
+                  var checkedAttr = m === SUGGESTED_PRICE_DEFAULT_MARGIN ? ' checked' : '';
+                  return '<label class="margin-option">' +
+                    '<input type="radio" name="margin-' + product.id + '" value="' + m + '"' + checkedAttr + '>' +
+                    '<span class="margin-option-inner"><span class="margin-knives" aria-hidden="true">' + knives + '</span><span class="margin-pct">' + pct + '%</span></span>' +
+                    '</label>';
+                }).join('') +
+              '</div>' +
               '<p class="suggested-price-value"></p>' +
-              '<p class="suggested-price-margin-note">' + t(UI_STRINGS).suggestedPriceMarginNote + '</p>' +
+              '<p class="suggested-price-margin-note"></p>' +
               '<label class="mishap-checkbox-label"><input type="checkbox" class="mishap-checkbox"> ' + t(UI_STRINGS).mishapCheckboxLabel + '</label>' +
+              '<label class="pirobo-checkbox-label"><input type="checkbox" class="pirobo-checkbox"> ' + t(UI_STRINGS).piroboCheckboxLabel + '</label>' +
+              '<p class="pirobo-warning">⚠ ' + t(UI_STRINGS).piroboWarning + '</p>' +
+              '<p class="pirobo-breakdown" style="display:none;"></p>' +
             '</div>' +
           '</div>' +
           '<button class="download-btn" type="button">' + t(UI_STRINGS).downloadClientImage + '</button>');
@@ -400,12 +414,20 @@
       var totalCopValue = card.querySelector('.total-cop-value');
       var etaLine = card.querySelector('.colombia-eta-line');
       var mishapCheckbox = card.querySelector('.mishap-checkbox');
+      var piroboCheckbox = card.querySelector('.pirobo-checkbox');
+      var piroboBreakdown = card.querySelector('.pirobo-breakdown');
+      var marginNoteEl = card.querySelector('.suggested-price-margin-note');
       var suggestedPriceValue = card.querySelector('.suggested-price-value');
 
       function selectedDestination() {
         var checked = card.querySelector('.destination-row input:checked');
         var destId = checked ? checked.value : SHIP_DESTINATIONS[0].id;
         return SHIP_DESTINATIONS.filter(function (d) { return d.id === destId; })[0] || SHIP_DESTINATIONS[0];
+      }
+
+      function selectedMargin() {
+        var checked = card.querySelector('.margin-option input:checked');
+        return checked ? parseFloat(checked.value) : SUGGESTED_PRICE_DEFAULT_MARGIN;
       }
 
       function recomputeTotal() {
@@ -425,13 +447,26 @@
         etaLine.textContent = etaMsg || '';
         etaLine.style.display = etaMsg ? 'block' : 'none';
 
-        // Suggested selling price: full landed cost x 1.5 (50% margin),
-        // plus another 10% on top of that if the mishap checkbox is on.
-        // Shown in COP only - this is Pablo's price to quote, not a
-        // USD-facing number.
-        var suggestedUsdEquivalent = total * SUGGESTED_PRICE_MARGIN_MULTIPLIER *
-          (mishapCheckbox.checked ? SUGGESTED_PRICE_MISHAP_MULTIPLIER : 1);
+        // Suggested selling price: full landed cost x the selected margin
+        // tier (50/60/75/100%, picked via the radio row), plus another
+        // 10% on top if the mishap checkbox is on, plus two compounding
+        // 2.5% passes if the "pirobo" checkbox is on. Shown in COP only -
+        // this is Pablo's price to quote, not a USD-facing number.
+        var margin = selectedMargin();
+        marginNoteEl.textContent = t(UI_STRINGS).suggestedPriceMarginNoteTemplate.replace('{pct}', Math.round(margin * 100));
+
+        var suggestedUsdEquivalent = total * (1 + margin) *
+          (mishapCheckbox.checked ? SUGGESTED_PRICE_MISHAP_MULTIPLIER : 1) *
+          (piroboCheckbox.checked ? PIROBO_STEP_MULTIPLIER * PIROBO_STEP_MULTIPLIER : 1);
         suggestedPriceValue.textContent = copEquivalent(suggestedUsdEquivalent) || '';
+
+        if (piroboCheckbox.checked) {
+          var piroboPct = Math.round(((PIROBO_STEP_MULTIPLIER * PIROBO_STEP_MULTIPLIER) - 1) * 1000) / 10;
+          piroboBreakdown.textContent = t(UI_STRINGS).piroboBreakdownTemplate.replace('{pct}', piroboPct);
+          piroboBreakdown.style.display = 'block';
+        } else {
+          piroboBreakdown.style.display = 'none';
+        }
       }
 
       // Changing the destination can change the fedex-priority-ON price
@@ -446,6 +481,10 @@
       select.addEventListener('change', recomputeTotal);
       colombiaQtyInput.addEventListener('input', recomputeTotal);
       mishapCheckbox.addEventListener('change', recomputeTotal);
+      piroboCheckbox.addEventListener('change', recomputeTotal);
+      Array.prototype.forEach.call(card.querySelectorAll('.margin-option input'), function (radio) {
+        radio.addEventListener('change', recomputeTotal);
+      });
       Array.prototype.forEach.call(card.querySelectorAll('.destination-row input'), function (radio) {
         radio.addEventListener('change', onDestinationChange);
       });

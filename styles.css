@@ -478,10 +478,59 @@ main {
   margin: 0 0 4px;
 }
 
-.suggested-price-knives {
-  font-size: 22px;
-  line-height: 1;
+.margin-options-label {
+  font-size: 10.5px;
+  color: var(--text-muted);
   margin: 0 0 4px;
+}
+
+.margin-options {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.margin-option {
+  flex: 1;
+  margin-bottom: 0 !important;
+  cursor: pointer;
+}
+
+.margin-option input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.margin-option-inner {
+  display: block;
+  text-align: center;
+  padding: 6px 2px 5px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.margin-option input:checked + .margin-option-inner {
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  background: #eef4ff;
+}
+
+.margin-knives {
+  display: block;
+  font-size: 11px;
+  line-height: 1;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  letter-spacing: -1px;
+}
+
+.margin-pct {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .suggested-price-value {
@@ -513,6 +562,41 @@ main {
   margin: 1px 0 0;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+.pirobo-checkbox-label {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 10.5px !important;
+  color: var(--text-muted) !important;
+  font-weight: 400 !important;
+  line-height: 1.4;
+  margin: 8px 0 0 !important;
+  cursor: pointer;
+}
+
+.pirobo-checkbox-label input {
+  margin: 1px 0 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pirobo-warning {
+  font-size: 10px;
+  color: #a01d1d;
+  margin: 3px 0 0 20px;
+}
+
+.pirobo-breakdown {
+  font-size: 10.5px;
+  color: #9a5b1f;
+  background: #fdf6e3;
+  border: 1px solid #eddca6;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 6px 0 0;
+  line-height: 1.4;
 }
 
 .colombia-cost-line {
