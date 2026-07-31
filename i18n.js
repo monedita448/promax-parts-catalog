@@ -39,7 +39,7 @@ const UI_STRINGS = {
     totalLabel: "Total",
     suggestedPriceLabel: "Precio sugerido de venta",
     suggestedPriceMarginNote: "Incluye un margen del 50%",
-    mishapCheckboxLabel: "Agregar un 10% adicional por fluctuaciones de cambio y envío",
+    mishapCheckboxLabel: "Agregar un 10% adicional por fluctuaciones en cambio de moneda y envío",
     free: "gratis",
     emptyState: "Ninguna pieza coincide con esa búsqueda.",
     notesTitle: "Notas",
