@@ -355,12 +355,39 @@
     return lines.join('\n');
   }
 
-  function openOrderChat(message) {
-    if (!ORDER_WHATSAPP_NUMBER) {
+  // Best-effort link to injuredgadgets.com's own search results for this
+  // part - there's no per-product URL stored in the catalog data, so this
+  // can't land the sourcing side on the exact listing, only a relevant
+  // search. Uses the site's standard Shopify-style search query.
+  function injuredGadgetsSearchUrl(product, modelLabel) {
+    var query = modelLabel + ' ' + product.name.en + ' ' + GRADE_I18N[product.gradeKey].en;
+    return 'https://www.injuredgadgets.com/search?q=' + encodeURIComponent(query);
+  }
+
+  // Builds the second, English-language message sent to whoever actually
+  // sources/places the order on injuredgadgets.com: the part, its grade
+  // and color(s) so it can be matched to the exact listing, the quantity,
+  // and a search link to find it. Always in English regardless of the
+  // catalog's display language, since this side is US-based.
+  function buildSourcingMessage(product, modelLabel, qty) {
+    var colorsText = (product.colors || []).length ? product.colors.join(', ') : 'any available color';
+    var lines = [
+      'Please source/order this part:',
+      modelLabel + ' — ' + product.name.en,
+      'Grade: ' + GRADE_I18N[product.gradeKey].en,
+      'Color(s): ' + colorsText,
+      'Quantity: ' + qty,
+      'Find it here: ' + injuredGadgetsSearchUrl(product, modelLabel)
+    ];
+    return lines.join('\n');
+  }
+
+  function sendWhatsAppMessage(number, message) {
+    if (!number) {
       alert(t(UI_STRINGS).orderButtonMissingNumber);
       return;
     }
-    var url = 'https://wa.me/' + ORDER_WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
+    var url = 'https://wa.me/' + number + '?text=' + encodeURIComponent(message);
     window.open(url, '_blank');
   }
 
@@ -552,7 +579,13 @@
           domesticEtaText: domesticEtaMessage(opt, dest.label),
           etaText: etaLine.textContent
         });
-        openOrderChat(message);
+        var sourcingMessage = buildSourcingMessage(product, modelLabel, qty);
+
+        // Two separate chats, opened together from the same click: one to
+        // Pablo with pricing/margin/ETAs, one to the sourcing side with
+        // what to find and order on injuredgadgets.com.
+        sendWhatsAppMessage(ORDER_WHATSAPP_NUMBER, message);
+        sendWhatsAppMessage(SOURCING_WHATSAPP_NUMBER, sourcingMessage);
       });
 
       // Populate the ETA line immediately, without waiting for the first
