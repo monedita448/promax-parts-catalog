@@ -288,28 +288,36 @@
   }
 
   // Builds the plain-text order message sent to Pablo's own WhatsApp
-  // number: what to order, how many, which shipping method, and the
-  // margin and suggested price he's quoting. No source-website link -
-  // that's only relevant on the sourcing side, not for Pablo.
-  function buildOrderMessage(product, modelLabel, shippingOptId, destLabel, qty, margin, suggestedPriceText) {
-    var shippingLabel = t(SHIPPING_I18N[shippingOptId] || { en: shippingOptId, es: shippingOptId });
+  // number: every detail he'd need to place and quote the order - part,
+  // quantity, shipping method, pickup address, Colombia freight and ETA,
+  // total landed cost, margin, and suggested price. No source-website
+  // link - that's only relevant on the sourcing side, not for Pablo.
+  function buildOrderMessage(details) {
+    var shippingLabel = t(SHIPPING_I18N[details.shippingOptId] || { en: details.shippingOptId, es: details.shippingOptId });
     var lines = lang === 'es'
       ? [
-          modelLabel + ' — ' + t(product.name),
-          'Cantidad: ' + qty,
+          details.modelLabel + ' — ' + t(details.product.name),
+          'Cantidad: ' + details.qty,
           'Envío: ' + shippingLabel,
-          'Dirección de recogida: ' + destLabel,
-          'Margen aplicado: ' + Math.round(margin * 100) + '%',
-          'Precio sugerido al cliente: ' + suggestedPriceText
+          'Dirección de recogida: ' + details.destLabel
         ]
       : [
-          modelLabel + ' — ' + t(product.name),
-          'Quantity: ' + qty,
+          details.modelLabel + ' — ' + t(details.product.name),
+          'Quantity: ' + details.qty,
           'Shipping: ' + shippingLabel,
-          'Pickup address: ' + destLabel,
-          'Margin applied: ' + Math.round(margin * 100) + '%',
-          'Suggested price to client: ' + suggestedPriceText
+          'Pickup address: ' + details.destLabel
         ];
+
+    if (details.colombiaShippingText) {
+      lines.push((lang === 'es' ? 'Envío a Colombia: ' : 'Colombia shipping: ') + details.colombiaShippingText);
+    }
+    if (details.etaText) {
+      lines.push((lang === 'es' ? 'Llegada estimada: ' : 'Estimated arrival: ') + details.etaText);
+    }
+    lines.push((lang === 'es' ? 'Total (costo real): ' : 'Total (actual cost): ') + details.totalText);
+    lines.push((lang === 'es' ? 'Margen aplicado: ' : 'Margin applied: ') + Math.round(details.margin * 100) + '%');
+    lines.push((lang === 'es' ? 'Precio sugerido al cliente: ' : 'Suggested price to client: ') + details.suggestedPriceText);
+
     return lines.join('\n');
   }
 
@@ -495,8 +503,18 @@
       var orderBtn = card.querySelector('.order-btn');
       orderBtn.addEventListener('click', function () {
         var qty = parseInt(quantityInput.value, 10) || 1;
-        var destLabel = selectedDestination().label;
-        var message = buildOrderMessage(product, modelLabel, select.value, destLabel, qty, selectedMargin(), suggestedPriceValue.textContent);
+        var message = buildOrderMessage({
+          product: product,
+          modelLabel: modelLabel,
+          shippingOptId: select.value,
+          destLabel: selectedDestination().label,
+          qty: qty,
+          margin: selectedMargin(),
+          suggestedPriceText: suggestedPriceValue.textContent,
+          totalText: totalValue.textContent + (totalCopValue.textContent ? ' / ' + totalCopValue.textContent : ''),
+          colombiaShippingText: colombiaCostValue.textContent !== money(0) ? colombiaCostValue.textContent : '',
+          etaText: etaLine.textContent
+        });
         openOrderChat(message);
       });
 
