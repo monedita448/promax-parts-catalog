@@ -318,6 +318,23 @@
     return candidates[0].id;
   }
 
+  // Sequential order number, kept in localStorage so it persists across
+  // visits on Pablo's own device and keeps counting up (1, 2, 3...)
+  // rather than repeating. Zero-padded to 4 digits (0001, 0002, ...) so it
+  // sorts and lines up cleanly if these ever get logged into a
+  // spreadsheet later; grows past 4 digits naturally once needed. This is
+  // per-device - a new browser/device starts its own count at 1.
+  function getNextOrderNumber() {
+    var STORAGE_KEY = 'catalogOrderCounter';
+    var current = 0;
+    try {
+      current = parseInt(localStorage.getItem(STORAGE_KEY), 10) || 0;
+    } catch (e) {}
+    var next = current + 1;
+    try { localStorage.setItem(STORAGE_KEY, String(next)); } catch (e) {}
+    return next < 10000 ? ('0000' + next).slice(-4) : String(next);
+  }
+
   // Builds the plain-text order message sent to Pablo's own WhatsApp
   // number: every detail he'd need to place and quote the order - part,
   // quantity, shipping method, pickup address, Colombia freight and ETA,
@@ -327,12 +344,14 @@
     var shippingLabel = t(SHIPPING_I18N[details.shippingOptId] || { en: details.shippingOptId, es: details.shippingOptId });
     var lines = lang === 'es'
       ? [
+          'Pedido #' + details.orderNumber,
           details.modelLabel + ' — ' + t(details.product.name),
           'Cantidad: ' + details.qty,
           'Envío: ' + shippingLabel,
           'Dirección de recogida: ' + details.destLabel
         ]
       : [
+          'Order #' + details.orderNumber,
           details.modelLabel + ' — ' + t(details.product.name),
           'Quantity: ' + details.qty,
           'Shipping: ' + shippingLabel,
@@ -369,9 +388,10 @@
   // and color(s) so it can be matched to the exact listing, the quantity,
   // and a search link to find it. Always in English regardless of the
   // catalog's display language, since this side is US-based.
-  function buildSourcingMessage(product, modelLabel, qty) {
+  function buildSourcingMessage(product, modelLabel, qty, orderNumber) {
     var colorsText = (product.colors || []).length ? product.colors.join(', ') : 'any available color';
     var lines = [
+      'Order #' + orderNumber,
       'Please source/order this part:',
       modelLabel + ' — ' + product.name.en,
       'Grade: ' + GRADE_I18N[product.gradeKey].en,
@@ -396,7 +416,7 @@
   // Pablo's screen. Uses Formspree so this static site doesn't need its
   // own backend; if the endpoint hasn't been configured yet, this just
   // logs a console warning and does nothing visible.
-  function sendSourcingNotification(message) {
+  function sendSourcingNotification(subject, message) {
     if (!SOURCING_FORM_ENDPOINT) {
       console.warn('Sourcing notification skipped - SOURCING_FORM_ENDPOINT is not set in data.js yet.');
       return;
@@ -404,7 +424,7 @@
     fetch(SOURCING_FORM_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ subject: 'New part to source/order', message: message })
+      body: JSON.stringify({ subject: subject, message: message })
     }).catch(function () {});
   }
 
@@ -583,7 +603,9 @@
         var qty = parseInt(quantityInput.value, 10) || 1;
         var dest = selectedDestination();
         var opt = SHIPPING_OPTIONS.filter(function (o) { return o.id === select.value; })[0];
+        var orderNumber = getNextOrderNumber();
         var message = buildOrderMessage({
+          orderNumber: orderNumber,
           product: product,
           modelLabel: modelLabel,
           shippingOptId: select.value,
@@ -596,14 +618,15 @@
           domesticEtaText: domesticEtaMessage(opt, dest.label),
           etaText: etaLine.textContent
         });
-        var sourcingMessage = buildSourcingMessage(product, modelLabel, qty);
+        var sourcingMessage = buildSourcingMessage(product, modelLabel, qty, orderNumber);
 
         // Pablo's own WhatsApp chat opens visibly, as usual (pricing,
         // margin, ETAs, no source-website link). The sourcing side gets a
         // silent background notification instead - no window, no popup,
-        // nothing ever shown on Pablo's screen.
+        // nothing ever shown on Pablo's screen. Both share the same
+        // sequential order number for easy cross-reference later.
         sendWhatsAppMessage(ORDER_WHATSAPP_NUMBER, message);
-        sendSourcingNotification(sourcingMessage);
+        sendSourcingNotification('Pablo Orden Telefonos #' + orderNumber, sourcingMessage);
       });
 
       // Populate the ETA line immediately, without waiting for the first
