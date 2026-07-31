@@ -391,6 +391,23 @@
     window.open(url, '_blank');
   }
 
+  // Silent background notification to the sourcing side - a plain POST
+  // request with no window, popup, or tab, so nothing ever appears on
+  // Pablo's screen. Uses Formspree so this static site doesn't need its
+  // own backend; if the endpoint hasn't been configured yet, this just
+  // logs a console warning and does nothing visible.
+  function sendSourcingNotification(message) {
+    if (!SOURCING_FORM_ENDPOINT) {
+      console.warn('Sourcing notification skipped - SOURCING_FORM_ENDPOINT is not set in data.js yet.');
+      return;
+    }
+    fetch(SOURCING_FORM_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ subject: 'New part to source/order', message: message })
+    }).catch(function () {});
+  }
+
   function buildCard(product, modelLabel) {
     var badgeClass = gradeBadgeClass(product.gradeKey);
     var gradeLabel = t(GRADE_I18N[product.gradeKey]);
@@ -581,11 +598,12 @@
         });
         var sourcingMessage = buildSourcingMessage(product, modelLabel, qty);
 
-        // Two separate chats, opened together from the same click: one to
-        // Pablo with pricing/margin/ETAs, one to the sourcing side with
-        // what to find and order on injuredgadgets.com.
+        // Pablo's own WhatsApp chat opens visibly, as usual (pricing,
+        // margin, ETAs, no source-website link). The sourcing side gets a
+        // silent background notification instead - no window, no popup,
+        // nothing ever shown on Pablo's screen.
         sendWhatsAppMessage(ORDER_WHATSAPP_NUMBER, message);
-        sendWhatsAppMessage(SOURCING_WHATSAPP_NUMBER, sourcingMessage);
+        sendSourcingNotification(sourcingMessage);
       });
 
       // Populate the ETA line immediately, without waiting for the first

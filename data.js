@@ -66,15 +66,23 @@ const PIROBO_STEP_MULTIPLIER = 1.025;
 // per Injured Gadgets' published policy. Every other state pays $25.
 const FEDEX_PRIORITY_LOW_TIER_STATES = ["FL", "GA", "AL", "SC", "NC", "TN"];
 
-// WhatsApp numbers the "Order" button messages, in international format
+// WhatsApp number the "Order" button messages, in international format
 // with no +, spaces, or dashes. wa.me only supports opening a chat with a
 // single number and prefilling text into it - it cannot auto-send into an
-// existing multi-person group. Clicking Order opens two separate chats:
-// Pablo's own summary (pricing, margin, ETAs), and a second message to
-// whoever sources the part on injuredgadgets.com, with the product
-// details and a link to find it.
+// existing multi-person group. This is the only chat window the button
+// ever opens/shows on screen - it's Pablo's own summary (pricing, margin,
+// ETAs), nothing about where the part is sourced from.
 const ORDER_WHATSAPP_NUMBER = "573046273122"; // Pablo (+57 304 6273122)
-const SOURCING_WHATSAPP_NUMBER = "13059859783"; // Sourcing/ordering side (+1 305 985 9783)
+
+// Sourcing/ordering notification: sent as a silent background request via
+// Formspree (https://formspree.io) so it never opens any window or popup
+// on Pablo's screen - he never sees this happen at all. Set this to the
+// form endpoint Formspree gives you after creating a free form there
+// (looks like "https://formspree.io/f/xxxxxxxx"); configure that form's
+// destination address to qenterprise9@gmail.com in the Formspree
+// dashboard. Left blank until that's set up - the notification silently
+// no-ops (logs a console warning only) until then.
+const SOURCING_FORM_ENDPOINT = "";
 
 // The two US drop addresses this catalog quotes shipping to. Pablo picks
 // one above the shipping dropdown; it determines which Priority
