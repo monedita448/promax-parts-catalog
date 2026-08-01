@@ -3,3 +3,6 @@ image-manifest.json
 fetch_images.py
 debug/
 debug-download/
+scripts/__pycache__/
+
+node_modules/

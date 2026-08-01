@@ -1,4 +1,4 @@
-name: Update parts prices
+name: Update parts prices (Injured Gadgets + MobileSentrix)
 
 on:
   schedule:

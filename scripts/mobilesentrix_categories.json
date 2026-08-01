@@ -1,0 +1,51 @@
+{
+  "_comment": "MobileSentrix has no per-SKU URL like Injured Gadgets does (its genuine-parts pages list every product for a model on one page), so instead of one URL per product id, this maps each Pro Max model to its genuine-parts category page, plus a matcher per data.js product id (an include/exclude substring filter, matched case-insensitively against each product tile's name on that model's page) telling update_prices.py which tile on that page corresponds to which catalog id. preferExcluding substrings are only applied to break ties when more than one tile matches include/exclude (e.g. picking the US-version charging port over the Canadian/UK-EU one) - if applying them would eliminate every match, they're ignored rather than leaving nothing.",
+  "categoryPages": [
+    { "model": "12", "url": "https://www.mobilesentrix.com/replacement-parts/apple/genuine-apple-parts/iphones/iphone-12-pro-max" },
+    { "model": "13", "url": "https://www.mobilesentrix.com/replacement-parts/apple/genuine-apple-parts/iphones/iphone-13-pro-max" },
+    { "model": "14", "url": "https://www.mobilesentrix.com/replacement-parts/apple/genuine-apple-parts/iphones/iphone-14-pro-max" },
+    { "model": "15", "url": "https://www.mobilesentrix.com/replacement-parts/apple/genuine-apple-parts/iphones/iphone-15-pro-max" },
+    { "model": "16", "url": "https://www.mobilesentrix.com/replacement-parts/apple/genuine-apple-parts/iphones/iphone-16-pro-max" },
+    { "model": "17", "url": "https://www.mobilesentrix.com/replacement-parts/apple/genuine-apple-parts/iphones/iphone-17-pro-max" }
+  ],
+  "matchers": [
+    { "id": "12-screen-ms", "model": "12", "include": ["oled assembly"], "exclude": [] },
+    { "id": "12-battery-ms", "model": "12", "include": ["replacement battery"], "exclude": [] },
+    { "id": "12-frontcam-ms", "model": "12", "include": ["front camera"], "exclude": ["bracket", "screw", "cover", "grille"] },
+    { "id": "12-rearcam-ms", "model": "12", "include": ["back camera"], "exclude": ["bracket", "screw", "cover", "shield"] },
+
+    { "id": "13-screen-ms", "model": "13", "include": ["oled assembly"], "exclude": [] },
+    { "id": "13-battery-ms", "model": "13", "include": ["replacement battery"], "exclude": [] },
+    { "id": "13-frontcam-ms", "model": "13", "include": ["front camera"], "exclude": ["bracket", "screw", "cover", "grille"] },
+    { "id": "13-rearcam-ms", "model": "13", "include": ["back camera"], "exclude": ["bracket", "screw", "cover", "shield"] },
+
+    { "id": "14-screen-ms", "model": "14", "include": ["oled assembly"], "exclude": [] },
+    { "id": "14-battery-ms", "model": "14", "include": ["replacement battery"], "exclude": [] },
+    { "id": "14-frontcam-ms", "model": "14", "include": ["front camera"], "exclude": ["bracket", "screw", "cover", "grille"] },
+    { "id": "14-rearcam-ms", "model": "14", "include": ["back camera"], "exclude": ["bracket", "screw", "cover", "shield"] },
+
+    { "id": "15-screen-ms", "model": "15", "include": ["oled assembly"], "exclude": [] },
+    { "id": "15-battery-ms", "model": "15", "include": ["replacement battery"], "exclude": [] },
+    { "id": "15-frontcam-ms", "model": "15", "include": ["front camera"], "exclude": ["bracket", "screw", "cover", "grille"] },
+    { "id": "15-rearcam-ms", "model": "15", "include": ["back camera"], "exclude": ["bracket", "screw", "cover", "shield"] },
+    { "id": "15-housing-ms", "model": "15", "include": ["back glass", "magsafe"], "exclude": ["bracket"], "preferExcluding": ["uk / eu", "uk/eu"] },
+
+    { "id": "16-screen-ms", "model": "16", "include": ["oled assembly"], "exclude": [] },
+    { "id": "16-battery-ms", "model": "16", "include": ["replacement battery"], "exclude": [] },
+    { "id": "16-frontcam-ms", "model": "16", "include": ["front camera"], "exclude": ["bracket", "screw", "cover", "grille"] },
+    { "id": "16-rearcam-ms", "model": "16", "include": ["back camera"], "exclude": ["bracket", "screw", "cover", "shield"] },
+    { "id": "16-charging-ms", "model": "16", "include": ["charging port flex"], "exclude": ["bracket"], "preferExcluding": ["canadian", "uk / eu", "uk/eu"] },
+    { "id": "16-loudspeaker-ms", "model": "16", "include": ["loudspeaker"], "exclude": ["screw"] },
+    { "id": "16-earspeaker-ms", "model": "16", "include": ["earpiece speaker"], "exclude": ["grille", "screw"] },
+    { "id": "16-housing-ms", "model": "16", "include": ["back glass", "magsafe"], "exclude": ["bracket"], "preferExcluding": ["uk / eu", "uk/eu"] },
+
+    { "id": "17-screen-ms", "model": "17", "include": ["oled assembly"], "exclude": [] },
+    { "id": "17-battery-ms", "model": "17", "include": ["replacement battery"], "exclude": [] },
+    { "id": "17-frontcam-ms", "model": "17", "include": ["front camera"], "exclude": ["bracket", "screw", "cover", "grille"] },
+    { "id": "17-rearcam-ms", "model": "17", "include": ["back camera"], "exclude": ["bracket", "screw", "cover", "shield"] },
+    { "id": "17-charging-ms", "model": "17", "include": ["charging port flex", "us version"], "exclude": ["bracket", "canadian"], "preferExcluding": ["uk / eu", "uk/eu"] },
+    { "id": "17-loudspeaker-ms", "model": "17", "include": ["loudspeaker"], "exclude": ["screw"] },
+    { "id": "17-earspeaker-ms", "model": "17", "include": ["earpiece speaker"], "exclude": ["grille", "screw"] },
+    { "id": "17-housing-ms", "model": "17", "include": ["back glass", "magsafe"], "exclude": ["bracket"], "preferExcluding": ["uk / eu", "uk/eu"] }
+  ]
+}

@@ -1,14 +1,20 @@
 (function () {
   var tabsEl = document.getElementById('tabs');
+  var supplierTabsEl = document.getElementById('supplierTabs');
   var gridEl = document.getElementById('grid');
   var searchEl = document.getElementById('search');
   var notesEl = document.getElementById('notes');
+  var gradeLegendEl = document.getElementById('gradeLegend');
   var brandEl = document.getElementById('brand');
   var calcLinkEl = document.getElementById('calcLink');
   var langBtn = document.getElementById('langBtn');
   var hidePricesBtn = document.getElementById('hidePricesBtn');
 
   var activeModel = CATALOG[0].model;
+  // 'all' shows both suppliers; otherwise a SUPPLIERS[].id string. Not
+  // persisted across page loads on purpose, same reasoning as
+  // pricesHidden - always starts from the full picture.
+  var activeSupplier = 'all';
   var lang = getLang();
   var rateState = { rate: null, offline: false, loaded: false };
   // Not persisted on purpose: prices should default back to visible on a
@@ -255,13 +261,23 @@
     return productPrice >= opt.freeOver ? 0 : basePrice;
   }
 
-  function shippingOptionsHtml(selectedId, productPrice, destinationState) {
+  // Injured Gadgets and MobileSentrix publish different shipping rates,
+  // thresholds, and cutoff times (see MOBILESENTRIX_SHIPPING_OPTIONS in
+  // data.js) - this picks the right table for a given product's supplier
+  // rather than always assuming Injured Gadgets' rates.
+  function shippingOptionsForSupplier(supplier) {
+    return supplier === 'mobilesentrix'
+      ? { options: MOBILESENTRIX_SHIPPING_OPTIONS, esVisible: MOBILESENTRIX_SHIPPING_OPTIONS_ES_VISIBLE }
+      : { options: SHIPPING_OPTIONS, esVisible: SHIPPING_OPTIONS_ES_VISIBLE };
+  }
+
+  function shippingOptionsHtml(selectedId, productPrice, destinationState, shipping) {
     // Spanish (Pablo's view) gets a trimmed list - one option per carrier
     // plus a fast option - so it isn't cluttered with near-duplicate
     // expedited tiers. English keeps the full list intact.
     var visibleOptions = lang === 'es'
-      ? SHIPPING_OPTIONS.filter(function (opt) { return SHIPPING_OPTIONS_ES_VISIBLE.indexOf(opt.id) !== -1; })
-      : SHIPPING_OPTIONS;
+      ? shipping.options.filter(function (opt) { return shipping.esVisible.indexOf(opt.id) !== -1; })
+      : shipping.options;
     return visibleOptions.map(function (opt) {
       var sel = opt.id === selectedId ? ' selected' : '';
       var label = t(SHIPPING_I18N[opt.id]);
@@ -303,6 +319,29 @@
         activeModel = btn.getAttribute('data-model');
         searchEl.value = '';
         renderTabs();
+        renderGrid();
+      });
+    });
+  }
+
+  // Supplier 1 (Injured Gadgets) vs Supplier 2 (MobileSentrix) filter -
+  // shown as pill buttons above the model tabs. "All suppliers" is the
+  // default so nothing is hidden by surprise; search (in renderGrid)
+  // respects whichever supplier is currently selected here too.
+  function renderSupplierTabs() {
+    if (!supplierTabsEl) return;
+    var allCls = 'tab-btn' + (activeSupplier === 'all' ? ' active' : '');
+    var html = '<button class="' + allCls + '" data-supplier="all">' + t(UI_STRINGS).supplierAll + '</button>';
+    html += SUPPLIERS.map(function (s) {
+      var cls = 'tab-btn' + (activeSupplier === s.id ? ' active' : '');
+      return '<button class="' + cls + '" data-supplier="' + s.id + '">' + t(SUPPLIER_I18N[s.id]) + '</button>';
+    }).join('');
+    supplierTabsEl.innerHTML = html;
+
+    Array.prototype.forEach.call(supplierTabsEl.querySelectorAll('.tab-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        activeSupplier = btn.getAttribute('data-supplier');
+        renderSupplierTabs();
         renderGrid();
       });
     });
@@ -386,30 +425,41 @@
     return lines.join('\n');
   }
 
-  // Best-effort link to injuredgadgets.com's own search results for this
+  // Best-effort link to the right supplier's own search results for this
   // part - there's no per-product URL stored in the catalog data, so this
   // can't land the sourcing side on the exact listing, only a relevant
-  // search. Uses the site's standard Shopify-style search query.
-  function injuredGadgetsSearchUrl(product, modelLabel) {
+  // search. Each supplier gets its own search URL pattern; sending a
+  // MobileSentrix product's search to injuredgadgets.com (or vice versa)
+  // would point the sourcing side at the wrong website entirely.
+  function supplierSearchUrl(product, modelLabel) {
     var query = modelLabel + ' ' + product.name.en + ' ' + GRADE_I18N[product.gradeKey].en;
+    if (product.supplier === 'mobilesentrix') {
+      return 'https://www.mobilesentrix.com/catalogsearch/result/?q=' + encodeURIComponent(query);
+    }
     return 'https://www.injuredgadgets.com/search?q=' + encodeURIComponent(query);
   }
 
   // Builds the second, English-language message sent to whoever actually
-  // sources/places the order on injuredgadgets.com: the part, its grade
-  // and color(s) so it can be matched to the exact listing, the quantity,
-  // and a search link to find it. Always in English regardless of the
-  // catalog's display language, since this side is US-based.
+  // sources/places the order (Injured Gadgets or MobileSentrix, per the
+  // product's own supplier): the part, its grade and color(s) so it can
+  // be matched to the exact listing, the quantity, and a search link to
+  // find it. Always in English regardless of the catalog's display
+  // language, since this side is US-based.
   function buildSourcingMessage(product, modelLabel, qty, orderNumber) {
     var colorsText = (product.colors || []).length ? product.colors.join(', ') : 'any available color';
+    // Real company name on purpose here, unlike the "Provider 1/2" label
+    // shown everywhere else - whoever fulfills the order needs to know
+    // the actual website to buy from, not a generic placeholder.
+    var supplierName = SUPPLIER_REAL_NAME_EN[product.supplier] || 'Injured Gadgets';
     var lines = [
       'Order #' + orderNumber,
       'Please source/order this part:',
       modelLabel + ' — ' + product.name.en,
+      'Supplier: ' + supplierName,
       'Grade: ' + GRADE_I18N[product.gradeKey].en,
       'Color(s): ' + colorsText,
       'Quantity: ' + qty,
-      'Find it here: ' + injuredGadgetsSearchUrl(product, modelLabel)
+      'Find it here: ' + supplierSearchUrl(product, modelLabel)
     ];
     return lines.join('\n');
   }
@@ -441,6 +491,7 @@
   }
 
   function buildCard(product, modelLabel) {
+    var shipping = shippingOptionsForSupplier(product.supplier);
     var badgeClass = gradeBadgeClass(product.gradeKey);
     var gradeLabel = t(GRADE_I18N[product.gradeKey]);
     var name = t(product.name);
@@ -456,6 +507,10 @@
     var stockBadgeHtml = outOfStock
       ? '<span class="badge out-of-stock">' + t(UI_STRINGS).outOfStock + '</span>'
       : '';
+    var supplierLabel = product.supplier ? t(SUPPLIER_I18N[product.supplier]) : '';
+    var supplierBadgeHtml = supplierLabel
+      ? '<span class="badge supplier-badge">' + supplierLabel + '</span>'
+      : '';
 
     var card = document.createElement('div');
     card.className = 'card' + (outOfStock ? ' is-out-of-stock' : '');
@@ -463,6 +518,7 @@
       '<img src="' + product.img + '" alt="' + name + '" loading="lazy" decoding="async" onerror="this.style.opacity=0.25">' +
       '<div class="badge-row">' +
         '<span class="badge ' + badgeClass + '">' + gradeLabel + '</span>' +
+        supplierBadgeHtml +
         stockBadgeHtml +
       '</div>' +
       '<h3>' + name + '</h3>' +
@@ -476,7 +532,7 @@
           '<div class="shipping-row">' +
             '<div class="destination-row">' + destinationOptionsHtml(product.id, SHIP_DESTINATIONS[0].id) + '</div>' +
             '<label>' + t(UI_STRINGS).shippingLabel + '</label>' +
-            '<select>' + shippingOptionsHtml(SHIPPING_OPTIONS[0].id, product.price, SHIP_DESTINATIONS[0].state) + '</select>' +
+            '<select>' + shippingOptionsHtml(shipping.options[0].id, product.price, SHIP_DESTINATIONS[0].state, shipping) + '</select>' +
             '<p class="suggested-shipping-note"></p>' +
             '<label class="colombia-label">' + t(UI_STRINGS).colombiaShippingLabel + '</label>' +
             '<input type="number" class="colombia-qty-input" min="0" step="1" inputmode="numeric" placeholder="' + t(UI_STRINGS).colombiaQtyPlaceholder + '">' +
@@ -538,7 +594,7 @@
       }
 
       function recomputeTotal() {
-        var opt = SHIPPING_OPTIONS.filter(function (o) { return o.id === select.value; })[0];
+        var opt = shipping.options.filter(function (o) { return o.id === select.value; })[0];
         var domesticShipping = shippingCost(opt, product.price, selectedDestination().state);
         var qty = parseInt(colombiaQtyInput.value, 10);
         // $25 USD per every 6 items in the shipment, rounded up, so Pablo
@@ -578,8 +634,8 @@
         // Suggested shipping method, balancing speed against margin - only
         // ever shown as a hint under the dropdown, never auto-selected.
         var visibleOptions = lang === 'es'
-          ? SHIPPING_OPTIONS.filter(function (o) { return SHIPPING_OPTIONS_ES_VISIBLE.indexOf(o.id) !== -1; })
-          : SHIPPING_OPTIONS;
+          ? shipping.options.filter(function (o) { return shipping.esVisible.indexOf(o.id) !== -1; })
+          : shipping.options;
         var suggestedId = suggestBestShippingId(visibleOptions, product.price, selectedDestination().state, margin);
         if (suggestedId) {
           var suggestedLabel = t(SHIPPING_I18N[suggestedId]);
@@ -595,7 +651,7 @@
       // than just recomputing the total.
       function onDestinationChange() {
         var currentSelection = select.value;
-        select.innerHTML = shippingOptionsHtml(currentSelection, product.price, selectedDestination().state);
+        select.innerHTML = shippingOptionsHtml(currentSelection, product.price, selectedDestination().state, shipping);
         recomputeTotal();
       }
 
@@ -614,7 +670,7 @@
       orderBtn.addEventListener('click', function () {
         var qty = parseInt(quantityInput.value, 10) || 1;
         var dest = selectedDestination();
-        var opt = SHIPPING_OPTIONS.filter(function (o) { return o.id === select.value; })[0];
+        var opt = shipping.options.filter(function (o) { return o.id === select.value; })[0];
         var orderNumber = getNextOrderNumber();
         var message = buildOrderMessage({
           orderNumber: orderNumber,
@@ -655,7 +711,8 @@
     var grade = t(GRADE_I18N[product.gradeKey]);
     var category = t(CATEGORY_I18N[product.category]);
     var colors = (product.colors || []).map(function (c) { return t(COLOR_I18N[c] || { en: c, es: c }); });
-    var haystack = (modelLabel + ' ' + name + ' ' + category + ' ' + grade + ' ' + colors.join(' ')).toLowerCase();
+    var supplierLabel = product.supplier ? t(SUPPLIER_I18N[product.supplier]) : '';
+    var haystack = (modelLabel + ' ' + name + ' ' + category + ' ' + grade + ' ' + colors.join(' ') + ' ' + supplierLabel).toLowerCase();
     return haystack.indexOf(query.toLowerCase()) !== -1;
   }
 
@@ -670,7 +727,10 @@
     var anyResults = false;
 
     modelsToShow.forEach(function (m) {
-      var matches = m.products.filter(function (p) { return matchesSearch(p, m.label, query); });
+      var matches = m.products.filter(function (p) {
+        if (activeSupplier !== 'all' && p.supplier !== activeSupplier) return false;
+        return matchesSearch(p, m.label, query);
+      });
       if (!matches.length) return;
       anyResults = true;
 
@@ -706,11 +766,34 @@
       '</ul>';
   }
 
+  // Explains, in whichever language is active, what each grade badge
+  // shown on the cards actually means - every item now on the site is a
+  // genuine Apple part, so this is "which kind of genuine," not
+  // "genuine vs. not." Each row reuses the same badge styling as the
+  // cards themselves so it's obvious which explanation goes with which
+  // badge.
+  function renderGradeLegend() {
+    if (!gradeLegendEl) return;
+    var legend = GRADE_LEGEND;
+    gradeLegendEl.innerHTML =
+      '<strong>' + t(legend.title) + '</strong>' +
+      '<p class="grade-legend-intro">' + t(legend.intro) + '</p>' +
+      '<ul>' +
+      legend.items.map(function (item) {
+        var badgeClass = gradeBadgeClass(item.grade);
+        var badgeLabel = t(GRADE_I18N[item.grade]);
+        return '<li><span class="badge ' + badgeClass + '">' + badgeLabel + '</span> ' + t(item) + '</li>';
+      }).join('') +
+      '</ul>';
+  }
+
   function renderAll() {
     applyStaticStrings();
+    renderSupplierTabs();
     renderTabs();
     renderGrid();
     renderNotes();
+    renderGradeLegend();
   }
 
   searchEl.addEventListener('input', debounce(renderGrid, 150));

@@ -41,13 +41,20 @@ plain HTML/CSS/JS.
 
 ## Updating prices and stock
 
-Prices *and stock status* update themselves. A GitHub Actions workflow
-(`.github/workflows/update-prices.yml`) runs every 2 days, visits each of
-the 39 tracked product pages (`scripts/product_urls.json`) on Injured
-Gadgets **anonymously — no login, no account, no credentials** (confirmed
-by checking their site logged out: prices and stock status are fully
-public), and commits straight to `data.js` if anything changed. Nothing
-to configure, nothing to run yourself, no GitHub secrets needed at all.
+Prices *and stock status* update themselves for **both suppliers**. A
+GitHub Actions workflow (`.github/workflows/update-prices.yml`) runs
+every 2 days and commits straight to `data.js` if anything changed.
+Nothing to configure, nothing to run yourself, no GitHub secrets needed
+at all, for either supplier.
+
+- **Injured Gadgets (Supplier 1):** visits each of the 26 tracked product
+  pages (`scripts/product_urls.json`) **anonymously — no login, no
+  account, no credentials** (confirmed by checking their site logged out:
+  prices and stock status are fully public).
+- **MobileSentrix (Supplier 2):** has no per-product page like that -
+  instead it visits each Pro Max model's genuine-parts category page (one
+  page lists every product for that model) and matches the right tile to
+  each catalog id via `scripts/mobilesentrix_categories.json`.
 
 If a product goes out of stock, its card on the site automatically gets
 a red "Out of stock" badge, drops its price/shipping calculator (so Pablo
@@ -58,20 +65,26 @@ didn't load, etc.), it leaves the last known status alone rather than
 guessing — it will never silently assume something is available.
 
 **Worth knowing:**
-- If Injured Gadgets changes their page markup, the script will fail
-  loudly (visible in the Actions tab, and via the red banner on the live
-  site) rather than silently writing bad data — `data.js` is only
-  overwritten if a price/stock value was actually found and parsed.
+- If either supplier changes their page markup, that supplier's part of
+  the check will fail loudly (visible in the Actions tab, and via the red
+  banner on the live site) rather than silently writing bad data —
+  `data.js` is only overwritten if a price/stock value was actually found
+  and parsed. Each supplier is checked independently, so one breaking
+  doesn't stop the other from still updating.
 - You can trigger a check manually any time from the Actions tab
   ("Update parts prices" → "Run workflow"), no need to wait 2 days.
 - `colors` and `note` fields are not auto-updated — edit those in
-  `data.js` by hand if they ever change.
+  `data.js` by hand if they ever change. New MobileSentrix products (a
+  new model, a newly-added part) also need a matcher added to
+  `scripts/mobilesentrix_categories.json` by hand before they'll auto-update.
 - Injured Gadgets sits behind Cloudflare, which was confirmed (screenshot
   + saved HTML) to serve a bot-challenge page to a plain automated
   browser instead of the real product page. The script uses `patchright`
   (a stealth-patched drop-in replacement for Playwright) launched as real
-  Google Chrome to get past that. This is not a permanent guarantee — if
-  Cloudflare changes its detection, the checks may start failing again
+  Google Chrome to get past that, and reuses that same browser session
+  for MobileSentrix afterwards. This is not a permanent guarantee — if
+  Cloudflare (or MobileSentrix's own markup) changes, the checks may start
+  failing again
   (you'll see it via the red banner / failed Actions runs), and the
   approach may need revisiting at that point.
 

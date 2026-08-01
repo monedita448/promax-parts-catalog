@@ -1,16 +1,26 @@
 #!/usr/bin/env python3
 """
-Re-checks the price AND the stock status of every product listed in
-scripts/product_urls.json directly from Injured Gadgets' public product
-pages (confirmed via manual spot-check that prices and stock status are
-visible to anonymous, logged-out visitors - no wholesale account gating
-on this site), and patches the matching `price:` / `inStock:` fields for
-that product id directly in ../data.js (each product is written on a
-single line, so this is a line-level regex substitution, not a JS
-parser).
+Re-checks the price AND the stock status of every product in the
+catalog, for BOTH suppliers, and patches the matching `price:` /
+`inStock:` fields for that product id directly in ../data.js (each
+product is written on a single line, so this is a line-level regex
+substitution, not a JS parser).
+
+Injured Gadgets (Supplier 1): one page per product, listed in
+scripts/product_urls.json - prices/stock are visible to anonymous,
+logged-out visitors (confirmed via manual spot-check, no wholesale
+account gating on this site).
+
+MobileSentrix (Supplier 2): has no per-SKU page like that - instead each
+Pro Max model's whole genuine-parts catalog is one page
+(scripts/mobilesentrix_categories.json lists the 6 category page URLs,
+one per model, plus an include/exclude substring matcher per catalog
+product id telling this script which tile on that model's page is which
+product - see that file's own _comment for how the matchers work).
 
 No login, no credentials, nothing to configure in GitHub Actions secrets
-- this script only ever visits public pages anonymously.
+for either supplier - this script only ever visits public pages
+anonymously.
 
 Injured Gadgets sits behind Cloudflare, which was confirmed (via a saved
 screenshot + HTML dump) to serve a "Just a moment..." bot-challenge page
@@ -21,21 +31,27 @@ Playwright: pip install patchright / patchright install chrome) launched
 with real Google Chrome in its recommended undetected configuration
 (persistent context, headless=False under a virtual display, no custom
 user-agent/headers). There is no guarantee this keeps working forever -
-if Cloudflare updates its detection, this may need revisiting.
+if Cloudflare updates its detection, this may need revisiting. The same
+browser session is reused for MobileSentrix afterwards, both as a
+convenience and because there's no reason to assume MobileSentrix is any
+less likely to bot-block a plain scraper than Injured Gadgets was.
 
 Always writes ../status.json with {"status": "ok"|"error", "checkedAt":
 ISO timestamp, "reason": "..."} so the live site can show a warning
-banner if the last check failed (e.g. Injured Gadgets changed their page
+banner if the last check failed (e.g. either supplier changed their page
 markup). This file is written even when the check fails - data.js is
 only touched if a price/stock value was actually found and parsed.
 
-Stock status is read from Magento's standard availability markup
-(`.availability.in-stock` / `.availability.out-of-stock`), with a
-plain-text fallback ("in stock" / "out of stock" / a "Notify me" button
-implying the item is backordered). If none of those signals are found,
-stock status is left untouched in data.js rather than guessed at - the
-whole point of this field is to be trustworthy, so "unknown" is treated
-as "leave the last known value alone," never as "assume available."
+Stock status: for Injured Gadgets, read from Magento's standard
+availability markup (`.availability.in-stock` / `.availability.out-of-
+stock`), with a plain-text fallback ("in stock" / "out of stock" / a
+"Notify me" button implying the item is backordered). For MobileSentrix,
+read directly from each product tile's own add-to-cart button text
+("Add to Cart" vs "Notify Me"). In both cases, if no stock signal can be
+found at all, stock status is left untouched in data.js rather than
+guessed at - the whole point of this field is to be trustworthy, so
+"unknown" is treated as "leave the last known value alone," never as
+"assume available."
 """
 import json
 import os
@@ -50,10 +66,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_JS = BASE_DIR / "data.js"
 STATUS_JSON = BASE_DIR / "status.json"
 URLS_JSON = BASE_DIR / "scripts" / "product_urls.json"
+MS_CATEGORIES_JSON = BASE_DIR / "scripts" / "mobilesentrix_categories.json"
 DEBUG_DIR = BASE_DIR / "debug"
 
 PRICE_SELECTOR = ".product-info-main .price, .product-info-price .price, [data-price-type='finalPrice'] .price, .price"
 STOCK_SELECTOR = ".availability .value, .stock .value, .availability, .stock"
+
+# MobileSentrix's own markup (confirmed live, 31 jul 2026): product tiles
+# are `li.item` inside `ul.product-listing.products-grid`; the name is in
+# `h2.product-name`; the price actually charged (what this catalog uses,
+# the "Without Core" tier) is oddly under a span classed
+# `regular-price price` rather than `special-price` - the higher,
+# strikethrough MSRP-like reference number is under `old-price price`
+# instead. Stock is read straight off the tile's own add-to-cart button
+# text rather than any separate availability element.
+MS_TILE_SELECTOR = "ul.product-listing.products-grid li.item"
+MS_NAME_SELECTOR = "h2.product-name"
+MS_PRICE_SELECTOR = ".price-box .regular-price.price"
+MS_CART_BUTTON_SELECTOR = ".btn-cart, .notify_btn button"
 
 
 def write_status(status, reason=""):
@@ -133,6 +163,120 @@ def patch_stock(lines, product_id, in_stock):
             lines[i] = new_line
             return lines, (old_value, in_stock)
     return lines, "NOT_FOUND"
+
+
+def extract_ms_tiles(page):
+    """Reads every product tile on a MobileSentrix category page into a
+    list of {"name", "price", "inStock"} dicts. price/inStock are None
+    when that particular tile is missing the expected markup - callers
+    treat that the same as "couldn't find it," never as a guessed value.
+    """
+    tiles = page.query_selector_all(MS_TILE_SELECTOR)
+    results = []
+    for tile in tiles:
+        name_el = tile.query_selector(MS_NAME_SELECTOR)
+        if not name_el:
+            continue
+        name = name_el.inner_text().strip()
+
+        price = None
+        price_el = tile.query_selector(MS_PRICE_SELECTOR)
+        if price_el:
+            m = re.search(r"[\d,]+\.\d{2}", price_el.inner_text())
+            if m:
+                price = float(m.group(0).replace(",", ""))
+
+        in_stock = None
+        btn = tile.query_selector(MS_CART_BUTTON_SELECTOR)
+        if btn:
+            btn_text = btn.inner_text().strip().lower()
+            if btn_text:
+                in_stock = "notify" not in btn_text
+
+        results.append({"name": name, "price": price, "inStock": in_stock})
+    return results
+
+
+def match_ms_tile(tiles, matcher):
+    """Finds the one tile on a model's category page that corresponds to
+    a given catalog product id, per its include/exclude/preferExcluding
+    substring rules (see mobilesentrix_categories.json's own _comment).
+    Returns None if nothing matches - callers leave data.js untouched for
+    that id rather than guessing.
+    """
+    include = matcher.get("include", [])
+    exclude = matcher.get("exclude", [])
+    prefer_excluding = matcher.get("preferExcluding", [])
+
+    def is_match(t):
+        n = t["name"].lower()
+        return all(s in n for s in include) and not any(s in n for s in exclude)
+
+    candidates = [t for t in tiles if is_match(t)]
+    if not candidates:
+        return None
+    if prefer_excluding:
+        narrowed = [t for t in candidates if not any(s in t["name"].lower() for s in prefer_excluding)]
+        if narrowed:
+            candidates = narrowed
+    return candidates[0]
+
+
+def scrape_mobilesentrix(page, lines):
+    """Visits each Pro Max model's MobileSentrix genuine-parts category
+    page once, matches every MobileSentrix catalog product id against a
+    tile on the right page, and patches data.js the same way the
+    Injured Gadgets loop in run() does. Returns the (possibly patched)
+    lines plus a summary dict for the console report / status.json.
+    """
+    with open(MS_CATEGORIES_JSON, encoding="utf-8") as f:
+        config = json.load(f)
+
+    tiles_by_model = {}
+    page_failures = []
+    for cat in config["categoryPages"]:
+        try:
+            page.goto(cat["url"], wait_until="networkidle")
+            tiles_by_model[cat["model"]] = extract_ms_tiles(page)
+        except Exception as e:
+            page_failures.append(cat["model"] + ": " + str(e))
+            tiles_by_model[cat["model"]] = []
+
+    price_changes = []
+    stock_changes = []
+    not_found = []
+    stock_unknown = []
+
+    for matcher in config["matchers"]:
+        pid = matcher["id"]
+        tile = match_ms_tile(tiles_by_model.get(matcher["model"], []), matcher)
+        if not tile:
+            not_found.append(pid)
+            continue
+
+        if tile["price"] is not None:
+            lines, result = patch_price(lines, pid, tile["price"])
+            if result == "NOT_FOUND":
+                not_found.append(pid + " (id missing from data.js)")
+            elif result is not None:
+                price_changes.append((pid, result[0], result[1]))
+
+        if tile["inStock"] is None:
+            stock_unknown.append(pid)
+        else:
+            lines, result = patch_stock(lines, pid, tile["inStock"])
+            if result is not None and result != "NOT_FOUND":
+                stock_changes.append((pid, result[0], result[1]))
+
+    summary = {
+        "price_changes": price_changes,
+        "stock_changes": stock_changes,
+        "not_found": not_found,
+        "stock_unknown": stock_unknown,
+        "page_failures": page_failures,
+        "all_pages_failed": len(page_failures) == len(config["categoryPages"]),
+    }
+    return lines, summary
 
 
 def run():
@@ -221,6 +365,12 @@ def run():
                     elif result is not None:
                         stock_changes.append((pid, result[0], result[1]))
 
+            # Same browser session, same undetected Chrome setup - reused
+            # for MobileSentrix (Supplier 2) right after Injured Gadgets
+            # (Supplier 1) so this stays a single script/workflow run with
+            # a single commit, rather than needing a second scheduled job.
+            lines, ms_summary = scrape_mobilesentrix(page, lines)
+
             context.close()
     finally:
         shutil.rmtree(profile_dir, ignore_errors=True)
@@ -251,17 +401,48 @@ def run():
     if stock_unknown:
         print("Stock status unknown (left as-is):", ", ".join(stock_unknown))
 
-    # Only write data.js if something actually changed.
-    if price_changes or stock_changes:
+    print("=== MobileSentrix check summary ===")
+    if ms_summary["price_changes"]:
+        for pid, old, new in ms_summary["price_changes"]:
+            print("PRICE CHANGED %-16s $%.2f -> $%.2f" % (pid, old, new))
+    else:
+        print("No price changes.")
+    if ms_summary["stock_changes"]:
+        for pid, old, new in ms_summary["stock_changes"]:
+            old_label = "in stock" if old else "out of stock"
+            new_label = "in stock" if new else "out of stock"
+            print("STOCK CHANGED %-16s %s -> %s" % (pid, old_label, new_label))
+    else:
+        print("No stock changes.")
+    if ms_summary["not_found"]:
+        print("Could not match a tile to these catalog ids:", ", ".join(ms_summary["not_found"]))
+    if ms_summary["stock_unknown"]:
+        print("Stock status unknown (left as-is):", ", ".join(ms_summary["stock_unknown"]))
+    if ms_summary["page_failures"]:
+        print("Category pages that failed to load:")
+        for f_ in ms_summary["page_failures"]:
+            print(" -", f_)
+
+    # Only write data.js if something actually changed, from either supplier.
+    if price_changes or stock_changes or ms_summary["price_changes"] or ms_summary["stock_changes"]:
         with open(DATA_JS, "w", encoding="utf-8") as f:
             f.writelines(lines)
 
-    # If every single product failed to fetch, treat that as a systemic
-    # problem (e.g. IG changed their page markup, or is serving a
-    # block/rate-limit page instead of the real product page) rather
-    # than a handful of one-off misses.
-    if failures and len(failures) == len(products):
-        write_status("error", "all_price_fetches_failed")
+    # If every single Injured Gadgets product failed to fetch, or every
+    # single MobileSentrix category page failed to load, treat that as a
+    # systemic problem for that supplier (e.g. the site changed its page
+    # markup, or is serving a block/rate-limit page) rather than a
+    # handful of one-off misses, and surface which supplier broke.
+    ig_broken = bool(failures) and len(failures) == len(products)
+    ms_broken = ms_summary["all_pages_failed"]
+    if ig_broken and ms_broken:
+        write_status("error", "all_price_fetches_failed_both_suppliers")
+        return False
+    if ig_broken:
+        write_status("error", "all_price_fetches_failed_injured_gadgets")
+        return False
+    if ms_broken:
+        write_status("error", "all_category_pages_failed_mobilesentrix")
         return False
 
     write_status("ok")

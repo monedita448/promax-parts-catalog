@@ -33,7 +33,9 @@ const UI_STRINGS = {
     quantityLabel: "Quantity to order",
     orderButtonLabel: "Order via WhatsApp",
     orderButtonMissingNumber: "No WhatsApp number is set up for ordering yet.",
-    suggestedShippingTemplate: "Suggested option: {label}"
+    suggestedShippingTemplate: "Suggested option: {label}",
+    supplierLabel: "Supplier",
+    supplierAll: "All suppliers"
   },
   es: {
     brand: "Catálogo de piezas Pro Max",
@@ -67,7 +69,9 @@ const UI_STRINGS = {
     quantityLabel: "Cantidad a pedir",
     orderButtonLabel: "Pedir por WhatsApp",
     orderButtonMissingNumber: "Todavía no hay un número de WhatsApp configurado para pedidos.",
-    suggestedShippingTemplate: "Opción sugerida: {label}"
+    suggestedShippingTemplate: "Opción sugerida: {label}",
+    supplierLabel: "Proveedor",
+    supplierAll: "Todos los proveedores"
   }
 };
 
@@ -76,14 +80,54 @@ const CATEGORY_I18N = {
   "Back housing": { en: "Back housing", es: "Carcasa trasera" },
   "Camera": { en: "Camera", es: "Cámara" },
   "Charging port": { en: "Charging port", es: "Puerto de carga" },
-  "Speaker": { en: "Speaker", es: "Altavoz" }
+  "Speaker": { en: "Speaker", es: "Altavoz" },
+  "Battery": { en: "Battery", es: "Batería" }
 };
 
 const GRADE_I18N = {
   "genuine": { en: "Genuine", es: "Genuino" },
   "genuine-oem-pull": { en: "Genuine OEM pull · Grade A", es: "Genuino OEM pull · Grado A" },
+  "genuine-oem-apple": { en: "Genuine Apple OEM (new)", es: "Genuino Apple OEM (nuevo)" },
   "premium": { en: "Premium", es: "Premium" },
   "premium-refurbished": { en: "Premium refurbished", es: "Premium reacondicionado" }
+};
+
+// Shown to Pablo as generic "Provider 1/2" rather than the real supplier
+// company names - same reasoning as never surfacing the sourcing website
+// in client-facing text elsewhere in this catalog.
+const SUPPLIER_I18N = {
+  "injured-gadgets": { en: "Provider 1", es: "Proveedor 1" },
+  "mobilesentrix": { en: "Provider 2", es: "Proveedor 2" }
+};
+
+// Every product left in the catalog is a genuine, original Apple part -
+// "premium"/"premium-refurbished" (non-Apple aftermarket) were removed
+// entirely. This legend explains the three remaining grades in plain
+// language, since they all describe an authentic Apple part, just from
+// a different source/condition - not "genuine vs. not genuine."
+const GRADE_LEGEND = {
+  title: { en: "Grade legend", es: "Leyenda de grados" },
+  intro: {
+    en: "Every part in this catalog is a genuine, original Apple part - there are no non-Apple \"aftermarket\" parts anymore. The grades below just describe where that genuine part came from.",
+    es: "Todas las piezas de este catálogo son piezas originales y genuinas de Apple - ya no hay piezas \"aftermarket\" (no originales). Los grados de abajo solo describen de dónde viene esa pieza genuina."
+  },
+  items: [
+    {
+      grade: "genuine",
+      en: "Genuine - an authentic Apple part; its condition isn't specially graded beyond \"working and genuine.\"",
+      es: "Genuino - una pieza auténtica de Apple; su condición no tiene una calificación especial más allá de \"funciona y es genuina.\""
+    },
+    {
+      grade: "genuine-oem-pull",
+      en: "Genuine OEM pull · Grade A - an authentic Apple part removed from another iPhone, in excellent (Grade A) working and cosmetic condition. Not brand new, but 100% original Apple.",
+      es: "Genuino OEM pull · Grado A - una pieza auténtica de Apple extraída de otro iPhone, en excelente estado (Grado A) de funcionamiento y apariencia. No es de fábrica, pero es 100% original de Apple."
+    },
+    {
+      grade: "genuine-oem-apple",
+      en: "Genuine Apple OEM (new) - a brand-new, factory Apple part, purchased through Apple's own Independent Repair Provider program (Provider 2). The highest-provenance option, and usually the most expensive.",
+      es: "Genuino Apple OEM (nuevo) - una pieza de Apple nueva de fábrica, comprada a través del programa oficial de Apple para proveedores independientes de reparación (Proveedor 2). Es la opción de mayor procedencia, y normalmente la más costosa."
+    }
+  ]
 };
 
 const COLOR_I18N = {
@@ -114,7 +158,18 @@ const SHIPPING_I18N = {
   "fedex-priority-ON": { en: "FedEx Priority Overnight", es: "FedEx Priority Overnight" },
   "fedex-saturday-ON": { en: "FedEx Saturday Priority Overnight (Friday shipments only)", es: "FedEx Saturday Priority Overnight (solo envíos los viernes)" },
   "pickup": { en: "In-store pickup", es: "Recogida en tienda" },
-  "combine": { en: "Combine with prior order", es: "Combinar con pedido anterior" }
+  "combine": { en: "Combine with prior order", es: "Combinar con pedido anterior" },
+  "ms-standard-overnight": { en: "Provider 2 Standard Overnight", es: "Provider 2 Standard Overnight" },
+  "ms-priority-overnight": { en: "Provider 2 Priority Overnight", es: "Provider 2 Priority Overnight" },
+  "ms-2day": { en: "Provider 2 2 Day", es: "Provider 2 2 días" },
+  "ms-ups-ground": { en: "Provider 2 UPS Ground", es: "Provider 2 UPS terrestre" },
+  "ms-fedex-ground": { en: "Provider 2 FedEx Ground", es: "Provider 2 FedEx terrestre" },
+  "ms-usps-ground": { en: "Provider 2 USPS Ground", es: "Provider 2 USPS terrestre" },
+  "ms-priority-mail": { en: "Provider 2 USPS Priority Mail", es: "Provider 2 USPS Priority Mail" },
+  "ms-priority-mail-express": { en: "Provider 2 USPS Priority Mail Express", es: "Provider 2 USPS Priority Mail Express" },
+  "ms-saturday-fedex": { en: "Provider 2 Saturday Delivery (Friday shipments only)", es: "Provider 2 entrega sábado (solo envíos los viernes)" },
+  "ms-pickup": { en: "Provider 2 in-store pickup", es: "Recogida en tienda del Proveedor 2" },
+  "ms-reserve": { en: "Provider 2 reserve order", es: "Pedido reservado del Proveedor 2" }
 };
 
 function getLang() {
