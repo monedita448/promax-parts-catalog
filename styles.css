@@ -657,15 +657,6 @@ main {
   background: #eef4ff;
 }
 
-.margin-knives {
-  display: block;
-  font-size: 11px;
-  line-height: 1;
-  margin-bottom: 3px;
-  white-space: nowrap;
-  letter-spacing: -1px;
-}
-
 .margin-pct {
   display: block;
   font-size: 11px;

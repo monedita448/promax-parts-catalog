@@ -547,11 +547,10 @@
               '<div class="margin-options">' +
                 SUGGESTED_PRICE_MARGIN_OPTIONS.map(function (m) {
                   var pct = Math.round(m * 100);
-                  var knives = new Array(SUGGESTED_PRICE_MARGIN_OPTIONS.indexOf(m) + 2).join('🔪');
                   var checkedAttr = m === SUGGESTED_PRICE_DEFAULT_MARGIN ? ' checked' : '';
                   return '<label class="margin-option">' +
                     '<input type="radio" name="margin-' + product.id + '" value="' + m + '"' + checkedAttr + '>' +
-                    '<span class="margin-option-inner"><span class="margin-knives" aria-hidden="true">' + knives + '</span><span class="margin-pct">' + pct + '%</span></span>' +
+                    '<span class="margin-option-inner"><span class="margin-pct">' + pct + '%</span></span>' +
                     '</label>';
                 }).join('') +
               '</div>' +
