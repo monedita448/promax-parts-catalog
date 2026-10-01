@@ -255,7 +255,7 @@ const CATALOG = [
     model: "17",
     label: "iPhone 17 Pro Max",
     products: [
-      { supplier: "injured-gadgets", id: "17-rearcam", category: "Camera", name: { en: "Rear camera module", es: "Módulo de cámara trasera" }, gradeKey: "genuine", inStock: true, price: 61.73, colors: [], img: "images/17pm-rearcam.jpg", note: { en: "Shared part number with 17 Pro.", es: "Mismo número de pieza que el 17 Pro." } },
+      { supplier: "injured-gadgets", id: "17-rearcam", category: "Camera", name: { en: "Rear camera module", es: "Módulo de cámara trasera" }, gradeKey: "genuine", inStock: false, price: 61.73, colors: [], img: "images/17pm-rearcam.jpg", note: { en: "Shared part number with 17 Pro.", es: "Mismo número de pieza que el 17 Pro." } },
       { supplier: "injured-gadgets", id: "17-frontcam", category: "Camera", name: { en: "Front camera module", es: "Módulo de cámara frontal" }, gradeKey: "genuine", inStock: true, price: 53.95, colors: [], img: "images/17pm-frontcam.jpg", note: { en: "", es: "" } },
       { supplier: "injured-gadgets", id: "17-loudspeaker", category: "Speaker", name: { en: "Loud speaker", es: "Altavoz" }, gradeKey: "genuine", inStock: true, price: 11.32, colors: [], img: "images/17pm-loudspeaker.jpg", note: { en: "", es: "" } },
       { supplier: "mobilesentrix", id: "17-screen-ms", category: "Display", name: { en: "Display assembly", es: "Pantalla completa" }, gradeKey: "genuine-oem-apple", inStock: true, price: 395.61, colors: ["Black"], img: "images/17pm-screen.jpg", note: { en: MS_NOTE_EN, es: MS_NOTE_ES } },
