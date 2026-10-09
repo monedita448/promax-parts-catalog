@@ -1,5 +1,5 @@
 {
-  "status": "ok",
-  "reason": "",
-  "checkedAt": "2026-10-07T16:35:08.302477+00:00"
+  "status": "error",
+  "reason": "all_price_fetches_failed_injured_gadgets",
+  "checkedAt": "2026-10-09T16:21:27.587757+00:00"
 }
